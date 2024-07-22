@@ -23,14 +23,16 @@ parser.add_argument('--alt', type=int, help='Altitude')
 args = parser.parse_args()
 
 def validate_lat_lon_alt(args):
+    # Check if --alt is provided
+    if args.alt:
+        if not args.lat or not args.lon:
+            parser.error('--alt should not be provided without --lat or --lon.')
+
     # Check if lat and lon are provided
     if args.lat or args.lon:
         # If one of lat or lon is provided, ensure both are provided
         if not (args.lat and args.lon):
             parser.error('If you specify --lat or --lon, you must specify both --lat and --lon.')
-        # Check if alt is provided
-        if args.alt:
-            parser.error('--alt should not be provided with --lat or --lon.')
 
 validate_lat_lon_alt(args)
 
@@ -101,7 +103,6 @@ def generate_hash(name, key):
 # Receive Messages
 
 def on_message(client, userdata, msg):
-    # if debug: print("on_message")
     se = mqtt_pb2.ServiceEnvelope()
     is_encrypted = False
     try:
@@ -339,10 +340,8 @@ def generate_mesh_packet(destination_id, encoded_message):
 
     if key == "":
         mesh_packet.decoded.CopyFrom(encoded_message)
-        if debug: print("key is none")
     else:
         mesh_packet.encrypted = encrypt_message(channel, key, mesh_packet, encoded_message)
-        if debug: print("key present")
 
     service_envelope = mqtt_pb2.ServiceEnvelope()
     service_envelope.packet.CopyFrom(mesh_packet)
@@ -356,7 +355,6 @@ def generate_mesh_packet(destination_id, encoded_message):
     client.publish(root_topic + channel + "/" + node_name, payload)
 
 def encrypt_message(channel, key, mesh_packet, encoded_message):
-    if debug: print("encrypt_message")
 
     mesh_packet.channel = generate_hash(channel, key)
     key_bytes = base64.b64decode(key.encode('ascii'))
@@ -420,37 +418,42 @@ def connect_mqtt():
         except Exception as e:
             print (e)
 
-def on_connect(client, userdata, flags, reason_code, properties):
-    set_topic()
-    if client.is_connected():
-        print("client is connected")
-    
-    if reason_code == 0:
-        if debug: print(f"Subscribe Topic is: {subscribe_topic}")
-        client.subscribe(subscribe_topic)
-        send_node_info(BROADCAST_NUM, want_response=False)
-
-    if args.message:
-        publish_message(BROADCAST_NUM, args.message)
-
-    if args.lat:
-        lat = args.lat
-        lon = args.lon
-        if args.alt:
-            alt = args.alt
-        send_position(BROADCAST_NUM, lat, lon, alt=0)
-
-
 def on_disconnect(client, userdata, flags, reason_code, properties):
-    if debug: print("on_disconnect")
+    if debug: print("client is disconnected")
     if reason_code != 0:
         if auto_reconnect == True:
             print("attempting to reconnect in " + str(auto_reconnect_delay) + " second(s)")
             time.sleep(auto_reconnect_delay)
             connect_mqtt()
 
+
+
+
 ############################
 # Main 
+
+def on_connect(client, userdata, flags, reason_code, properties):
+    set_topic()
+    if client.is_connected():
+        print("client is connected")
+    
+    if reason_code == 0:
+        if debug: print(f"Publish Topic is: {publish_topic}")
+        if debug: print(f"Subscribe Topic is: {subscribe_topic}")
+        client.subscribe(subscribe_topic)
+        send_node_info(BROADCAST_NUM, want_response=False)
+
+        if args.message:
+            publish_message(BROADCAST_NUM, args.message)
+
+        if args.lat:
+            lat = args.lat
+            lon = args.lon
+            if args.alt:
+                alt = args.alt
+            send_position(BROADCAST_NUM, lat, lon, alt=0)
+            
+    client.disconnect()
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="", clean_session=True, userdata=None)
 client.on_connect = on_connect
