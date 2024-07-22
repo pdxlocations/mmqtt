@@ -15,9 +15,24 @@ import base64
 import argparse
 import re
 
-parser = argparse.ArgumentParser(add_help=False)
+parser = argparse.ArgumentParser(add_help=True)
 parser.add_argument('--message', type=str, help='The message to send')
+parser.add_argument('--lat', type=int, help='Latitude coordinate')
+parser.add_argument('--lon', type=int, help='Longitude coordinate')
+parser.add_argument('--alt', type=int, help='Altitude')
 args = parser.parse_args()
+
+def validate_lat_lon_alt(args):
+    # Check if lat and lon are provided
+    if args.lat or args.lon:
+        # If one of lat or lon is provided, ensure both are provided
+        if not (args.lat and args.lon):
+            parser.error('If you specify --lat or --lon, you must specify both --lat and --lon.')
+        # Check if alt is provided
+        if args.alt:
+            parser.error('--alt should not be provided with --lat or --lon.')
+
+validate_lat_lon_alt(args)
 
 #### Debug Options
 debug = True
@@ -210,7 +225,7 @@ def direct_message(destination_id):
             if debug: print(f"Error converting destination_id: {e}")
 
 def publish_message(destination_id, message_text):
-    global key
+
     if debug: print("publish_message")
 
     if not client.is_connected():
@@ -258,7 +273,7 @@ def send_node_info(destination_id, want_response):
     generate_mesh_packet(destination_id, encoded_message)
 
 
-def send_position(destination_id):
+def send_position(destination_id, lat, lon, alt):
 
     global node_number, BROADCAST_NUM
     if debug: print("send_Position")
@@ -405,11 +420,6 @@ def connect_mqtt():
         except Exception as e:
             print (e)
 
-def disconnect_mqtt():
-    if debug: print("disconnect_mqtt")
-    if client.is_connected():
-        client.disconnect()
-
 def on_connect(client, userdata, flags, reason_code, properties):
     set_topic()
     if client.is_connected():
@@ -422,6 +432,14 @@ def on_connect(client, userdata, flags, reason_code, properties):
 
     if args.message:
         publish_message(BROADCAST_NUM, args.message)
+
+    if args.lat:
+        lat = args.lat
+        lon = args.lon
+        if args.alt:
+            alt = args.alt
+        send_position(BROADCAST_NUM, lat, lon, alt=0)
+
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
     if debug: print("on_disconnect")
@@ -441,5 +459,4 @@ client.on_message = on_message
 
 connect_mqtt()
 
-while True:
-    client.loop()
+client.loop_forever()
