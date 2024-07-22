@@ -43,6 +43,7 @@ auto_reconnect_delay = 1 # seconds
 print_service_envelope = False
 print_message_packet = False
 
+stay_connected = False
 print_node_info =  False
 print_node_position = False
 print_node_telemetry = False
@@ -126,8 +127,10 @@ def on_message(client, userdata, msg):
 
     if mp.decoded.portnum == portnums_pb2.TEXT_MESSAGE_APP:
         try:
+            from_str = getattr(mp, "from")
+            from_id = '!' + hex(from_str)[2:]
             text_payload = mp.decoded.payload.decode("utf-8")
-            print(f"{text_payload}")
+            print(f"{from_id}: {text_payload}")
         except Exception as e:
             print(f"*** TEXT_MESSAGE_APP: {str(e)}")
         
@@ -452,8 +455,8 @@ def on_connect(client, userdata, flags, reason_code, properties):
             if args.alt:
                 alt = args.alt
             send_position(BROADCAST_NUM, lat, lon, alt=0)
-            
-    client.disconnect()
+    if not stay_connected:
+        client.disconnect()
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="", clean_session=True, userdata=None)
 client.on_connect = on_connect
