@@ -14,7 +14,12 @@ from time import mktime
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import base64
+import argparse
 import re
+
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument('--message', type=str, help='The message to send')
+args = parser.parse_args()
 
 #### Debug Options
 debug = True
@@ -23,25 +28,20 @@ auto_reconnect_delay = 1 # seconds
 print_service_envelope = False
 print_message_packet = False
 
-print_node_info =  True
-print_node_position = True
-print_node_telemetry = True
+print_node_info =  False
+print_node_position = False
+print_node_telemetry = False
 
 ### Default settings
 mqtt_broker = "mqtt.meshtastic.org"
 mqtt_port = 1883
 mqtt_username = "meshdev"
 mqtt_password = "large4cats"
-root_topic = "msh/US/2/e/"
+root_topic = "msh/US/2/mqttc/"
 channel = "LongFast"
 key = "AQ=="
 
-message_text = "Person man, person man Hit on the head with a frying pan Lives his life in a garbage can"
-
-
-# Generate 4 random hexadecimal characters to create a unique node name
-random_hex_chars = ''.join(random.choices('0123456789abcdef', k=4))
-node_name = '!abcd' + random_hex_chars
+node_name = '!deadbeef'
 
 global_message_id = random.getrandbits(32)
 
@@ -65,7 +65,7 @@ default_key = "1PG7OiApB1nwvP+rz05pAQ==" # AKA AQ==
 # Program Base Functions
     
 def set_topic():
-    if debug: print("set_topic")
+    if debug: print(f"set_topic: {root_topic}{channel}/")
     global subscribe_topic, publish_topic, node_number, node_name
     node_name = '!' + hex(node_number)[2:]
     subscribe_topic = root_topic + channel + "/#"
@@ -246,23 +246,21 @@ def send_node_info(destination_id, want_response):
     global client_short_name, client_long_name, node_name, node_number, client_hw_model, BROADCAST_NUM
     if debug: print("send_node_info")
 
-    if not client.is_connected():
+    user_payload = mesh_pb2.User()
+    setattr(user_payload, "id", node_name)
+    setattr(user_payload, "long_name", client_long_name)
+    setattr(user_payload, "short_name", client_short_name)
+    setattr(user_payload, "hw_model", client_hw_model)
 
-        user_payload = mesh_pb2.User()
-        setattr(user_payload, "id", node_name)
-        setattr(user_payload, "long_name", client_long_name)
-        setattr(user_payload, "short_name", client_short_name)
-        setattr(user_payload, "hw_model", client_hw_model)
+    user_payload = user_payload.SerializeToString()
 
-        user_payload = user_payload.SerializeToString()
+    encoded_message = mesh_pb2.Data()
+    encoded_message.portnum = portnums_pb2.NODEINFO_APP
+    encoded_message.payload = user_payload
+    encoded_message.want_response = want_response  # Request NodeInfo back
 
-        encoded_message = mesh_pb2.Data()
-        encoded_message.portnum = portnums_pb2.NODEINFO_APP
-        encoded_message.payload = user_payload
-        encoded_message.want_response = want_response  # Request NodeInfo back
-
-        # print(encoded_message)
-        generate_mesh_packet(destination_id, encoded_message)
+    # print(encoded_message)
+    generate_mesh_packet(destination_id, encoded_message)
 
 
 def send_position(destination_id):
@@ -343,9 +341,9 @@ def generate_mesh_packet(destination_id, encoded_message):
     # print (service_envelope)
 
     payload = service_envelope.SerializeToString()
-    set_topic()
+    # set_topic()
     # print(payload)
-    client.publish(publish_topic, payload)
+    client.publish(root_topic + channel + "/" + node_name, payload)
 
 def encrypt_message(channel, key, mesh_packet, encoded_message):
     if debug: print("encrypt_message")
@@ -394,14 +392,14 @@ def connect_mqtt():
                 mqtt_port = int(mqtt_port)
 
             if key == "AQ==":
-                if debug: print("key is default, expanding to AES128")
+                # if debug: print("key is default, expanding to AES128")
                 key = "1PG7OiApB1nwvP+rz05pAQ=="
 
             padded_key = key.ljust(len(key) + ((4 - (len(key) % 4)) % 4), '=')
             replaced_key = padded_key.replace('-', '+').replace('_', '/')
             key = replaced_key
 
-            if debug: print (f"padded & replaced key = {key}")
+            # if debug: print (f"padded & replaced key = {key}")
 
             client.username_pw_set(mqtt_username, mqtt_password)
             if mqtt_port == 8883 and connect_mqtt.tls_configured == False:
@@ -418,6 +416,7 @@ def disconnect_mqtt():
     if client.is_connected():
         client.disconnect()
 
+
 def on_connect(client, userdata, flags, reason_code, properties):
     set_topic()
     if client.is_connected():
@@ -427,6 +426,10 @@ def on_connect(client, userdata, flags, reason_code, properties):
         if debug: print(f"Subscribe Topic is: {subscribe_topic}")
         client.subscribe(subscribe_topic)
         send_node_info(BROADCAST_NUM, want_response=False)
+
+    if args.message:
+        publish_message(BROADCAST_NUM, args.message)
+
 
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
