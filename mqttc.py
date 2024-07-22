@@ -9,8 +9,6 @@ import paho.mqtt.client as mqtt
 import random
 import time
 import ssl
-from datetime import datetime
-from time import mktime
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import base64
@@ -32,34 +30,32 @@ print_node_info =  False
 print_node_position = False
 print_node_telemetry = False
 
-### Default settings
+### Broker Settings
 mqtt_broker = "mqtt.meshtastic.org"
 mqtt_port = 1883
 mqtt_username = "meshdev"
 mqtt_password = "large4cats"
 root_topic = "msh/US/2/mqttc/"
+
+### Channel & PSK Settings
 channel = "LongFast"
 key = "AQ=="
 
+### Node Settings
 node_name = '!deadbeef'
-
-global_message_id = random.getrandbits(32)
-
-# Convert hex to int and remove '!'
-node_number = int(node_name.replace("!", ""), 16)
-
+node_number = int(node_name.replace("!", ""), 16) # Convert hex to int and remove '!'
 client_short_name = "MMC"
 client_long_name = "MQTTastic"
 lat = ""
 lon = ""
 alt = ""
 client_hw_model = 255
-node_info_interval_minutes = 15
 
 #################################
 ### Program variables
 
 default_key = "1PG7OiApB1nwvP+rz05pAQ==" # AKA AQ==
+global_message_id = random.getrandbits(32)
 
 #################################
 # Program Base Functions
@@ -242,7 +238,6 @@ def send_traceroute(destination_id):
         generate_mesh_packet(destination_id, encoded_message)
 
 def send_node_info(destination_id, want_response):
-
     global client_short_name, client_long_name, node_name, node_number, client_hw_model, BROADCAST_NUM
     if debug: print("send_node_info")
 
@@ -363,7 +358,6 @@ def encrypt_message(channel, key, mesh_packet, encoded_message):
 
     return encrypted_bytes
 
-
 def send_ack(destination_id, message_id):
     if debug: print("Sending ACK")
 
@@ -416,7 +410,6 @@ def disconnect_mqtt():
     if client.is_connected():
         client.disconnect()
 
-
 def on_connect(client, userdata, flags, reason_code, properties):
     set_topic()
     if client.is_connected():
@@ -430,8 +423,6 @@ def on_connect(client, userdata, flags, reason_code, properties):
     if args.message:
         publish_message(BROADCAST_NUM, args.message)
 
-
-
 def on_disconnect(client, userdata, flags, reason_code, properties):
     if debug: print("on_disconnect")
     if reason_code != 0:
@@ -439,7 +430,6 @@ def on_disconnect(client, userdata, flags, reason_code, properties):
             print("attempting to reconnect in " + str(auto_reconnect_delay) + " second(s)")
             time.sleep(auto_reconnect_delay)
             connect_mqtt()
-
 
 ############################
 # Main 
@@ -453,4 +443,3 @@ connect_mqtt()
 
 while True:
     client.loop()
-
