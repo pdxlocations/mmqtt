@@ -43,7 +43,7 @@ auto_reconnect_delay = 1 # seconds
 print_service_envelope = False
 print_message_packet = False
 
-stay_connected = False
+stay_connected = True
 print_node_info =  False
 print_node_position = False
 print_node_telemetry = False
@@ -53,7 +53,7 @@ mqtt_broker = "mqtt.meshtastic.org"
 mqtt_port = 1883
 mqtt_username = "meshdev"
 mqtt_password = "large4cats"
-root_topic = "msh/US/2/mqttc/"
+root_topic = "msh/US/2/e/"
 
 ### Channel & PSK Settings
 channel = "LongFast"
@@ -176,8 +176,6 @@ def on_message(client, userdata, msg):
             'Channel Utilization': round(env.device_metrics.channel_utilization, 1),
             'Air Utilization': round(env.device_metrics.air_util_tx, 1)
         }
-        if rssi:
-           device_metrics_dict["RSSI"] = rssi
 
         # Environment Metrics
         environment_metrics_dict = {
@@ -186,8 +184,6 @@ def on_message(client, userdata, msg):
             'Pressure': round(env.environment_metrics.barometric_pressure, 2),
             'Gas Resistance': round(env.environment_metrics.gas_resistance, 2)
         }
-        if rssi:
-           environment_metrics_dict["RSSI"] = rssi
 
 
 def decode_encrypted(mp):
