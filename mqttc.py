@@ -45,20 +45,6 @@ if os.path.exists(config_path):
 else:
     raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
-def validate_lat_lon_alt(args):
-    # Check if --alt is provided
-    if args.alt:
-        if not args.lat or not args.lon:
-            parser.error('--alt should not be provided without --lat or --lon.')
-
-    # Check if lat and lon are provided
-    if args.lat or args.lon:
-        # If one of lat or lon is provided, ensure both are provided
-        if not (args.lat and args.lon):
-            parser.error('If you specify --lat or --lon, you must specify both --lat and --lon.')
-
-validate_lat_lon_alt(args)
-
 ### Broker Settings
 mqtt_broker = config.get('mqtt_broker')
 mqtt_port = config.get('mqtt_port')
@@ -80,6 +66,19 @@ lon = config.get('lon')
 alt = config.get('alt')
 client_hw_model = config.get('client_hw_model')
 
+def validate_lat_lon_alt(args):
+    # Check if --alt is provided
+    if args.alt:
+        if not args.lat or not args.lon:
+            parser.error('--alt should not be provided without --lat or --lon.')
+
+    # Check if lat and lon are provided
+    if args.lat or args.lon:
+        # If one of lat or lon is provided, ensure both are provided
+        if not (args.lat and args.lon):
+            parser.error('If you specify --lat or --lon, you must specify both --lat and --lon.')
+
+validate_lat_lon_alt(args)
 
 #################################
 ### Program variables
@@ -453,6 +452,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
         if debug: print(f"Subscribe Topic is: {subscribe_topic}")
         client.subscribe(subscribe_topic)
         send_node_info(BROADCAST_NUM, want_response=False)
+        time.sleep(1)
 
         if args.message:
             publish_message(BROADCAST_NUM, args.message)
