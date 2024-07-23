@@ -442,6 +442,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
         if debug: print(f"Publish Topic is: {publish_topic}")
         if debug: print(f"Subscribe Topic is: {subscribe_topic}")
         client.subscribe(subscribe_topic)
+        
         send_node_info(BROADCAST_NUM, want_response=False)
         time.sleep(1)
 

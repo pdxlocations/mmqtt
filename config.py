@@ -14,8 +14,8 @@ key = "AQ=="
 ### Node Settings
 node_name = '!deadbeef'
 node_number = int(node_name.replace("!", ""), 16) # Convert hex to int and remove '!'
-client_short_name = "MMC"
-client_long_name = "MQTTastic"
+client_short_name = "MC"
+client_long_name = "MQTTc"
 lat = None
 lon = None
 alt = None
