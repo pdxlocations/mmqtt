@@ -15,6 +15,29 @@ import base64
 import argparse
 import re
 
+import config
+
+### Broker Settings
+mqtt_broker = config.mqtt_broker
+mqtt_port = config.mqtt_port
+mqtt_username = config.mqtt_username
+mqtt_password = config.mqtt_password
+root_topic = config.root_topic
+
+### Channel & PSK Settings
+channel = config.channel
+key = config.key
+
+### Node Settings
+node_name = config.node_name
+node_number = int(node_name.replace("!", ""), 16) # Convert hex to int and remove '!'
+client_short_name = config.client_short_name
+client_long_name = config.client_long_name
+lat = config.lat
+lon = config.lon
+alt = config.alt
+client_hw_model = config.client_hw_model
+
 parser = argparse.ArgumentParser(add_help=True)
 parser.add_argument('--message', type=str, help='The message to send')
 parser.add_argument('--lat', type=int, help='Latitude coordinate')
@@ -48,26 +71,6 @@ print_node_info =  False
 print_node_position = False
 print_node_telemetry = False
 
-### Broker Settings
-mqtt_broker = "mqtt.meshtastic.org"
-mqtt_port = 1883
-mqtt_username = "meshdev"
-mqtt_password = "large4cats"
-root_topic = "msh/US/2/e/"
-
-### Channel & PSK Settings
-channel = "LongFast"
-key = "AQ=="
-
-### Node Settings
-node_name = '!deadbeef'
-node_number = int(node_name.replace("!", ""), 16) # Convert hex to int and remove '!'
-client_short_name = "MMC"
-client_long_name = "MQTTastic"
-lat = ""
-lon = ""
-alt = ""
-client_hw_model = 255
 
 #################################
 ### Program variables
