@@ -241,19 +241,6 @@ def publish_message(destination_id, message_text):
     else:
         return
 
-def send_traceroute(destination_id):
-    if debug: print("send_TraceRoute")
-
-    if not client.is_connected():
-        if debug: print(f"Sending Traceroute Packet to {str(destination_id)}")
-
-        encoded_message = mesh_pb2.Data()
-        encoded_message.portnum = portnums_pb2.TRACEROUTE_APP
-        encoded_message.want_response = True
-
-        destination_id = int(destination_id[1:], 16)
-        generate_mesh_packet(destination_id, encoded_message)
-
 def send_node_info(destination_id, want_response):
     if debug: print("send_node_info")
 
