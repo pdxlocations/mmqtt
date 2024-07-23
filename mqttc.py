@@ -255,7 +255,6 @@ def send_traceroute(destination_id):
         generate_mesh_packet(destination_id, encoded_message)
 
 def send_node_info(destination_id, want_response):
-    global client_short_name, client_long_name, node_name, node_number, client_hw_model, BROADCAST_NUM
     if debug: print("send_node_info")
 
     user_payload = mesh_pb2.User()
@@ -442,9 +441,8 @@ def on_connect(client, userdata, flags, reason_code, properties):
         if debug: print(f"Publish Topic is: {publish_topic}")
         if debug: print(f"Subscribe Topic is: {subscribe_topic}")
         client.subscribe(subscribe_topic)
-        
-        send_node_info(BROADCAST_NUM, want_response=False)
-        time.sleep(1)
+
+        # send_node_info(BROADCAST_NUM, want_response=False)
 
         if args.message:
             publish_message(BROADCAST_NUM, args.message)
