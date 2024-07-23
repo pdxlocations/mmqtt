@@ -226,15 +226,6 @@ def decode_encrypted(mp):
 #################################
 # Send Messages
 
-def direct_message(destination_id):
-    if debug: print("direct_message")
-    if destination_id:
-        try:
-            destination_id = int(destination_id[1:], 16)
-            publish_message(destination_id)
-        except Exception as e:
-            if debug: print(f"Error converting destination_id: {e}")
-
 def publish_message(destination_id, message_text):
 
     if debug: print("publish_message")
