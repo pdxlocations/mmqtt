@@ -14,36 +14,36 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import argparse
 import re
+import os
 
-import config
+#### Debug Options
+debug = True
+auto_reconnect = True
+auto_reconnect_delay = 1 # seconds
+print_service_envelope = False
+print_message_packet = False
 
-### Broker Settings
-mqtt_broker = config.mqtt_broker
-mqtt_port = config.mqtt_port
-mqtt_username = config.mqtt_username
-mqtt_password = config.mqtt_password
-root_topic = config.root_topic
-
-### Channel & PSK Settings
-channel = config.channel
-key = config.key
-
-### Node Settings
-node_name = config.node_name
-node_number = int(node_name.replace("!", ""), 16) # Convert hex to int and remove '!'
-client_short_name = config.client_short_name
-client_long_name = config.client_long_name
-lat = config.lat
-lon = config.lon
-alt = config.alt
-client_hw_model = config.client_hw_model
+stay_connected = True
+print_node_info =  False
+print_node_position = False
+print_node_telemetry = False
 
 parser = argparse.ArgumentParser(add_help=True)
+parser.add_argument('--config', type=str, default='config.py', help='Path to the config file')
 parser.add_argument('--message', type=str, help='The message to send')
 parser.add_argument('--lat', type=int, help='Latitude coordinate')
 parser.add_argument('--lon', type=int, help='Longitude coordinate')
 parser.add_argument('--alt', type=int, help='Altitude')
 args = parser.parse_args()
+
+### Load Config
+config_path = args.config if args.config else 'config.py'
+config = {}
+if os.path.exists(config_path):
+    with open(config_path, 'r') as config_file:
+        exec(config_file.read(), config)
+else:
+    raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
 def validate_lat_lon_alt(args):
     # Check if --alt is provided
@@ -59,17 +59,26 @@ def validate_lat_lon_alt(args):
 
 validate_lat_lon_alt(args)
 
-#### Debug Options
-debug = True
-auto_reconnect = True
-auto_reconnect_delay = 1 # seconds
-print_service_envelope = False
-print_message_packet = False
+### Broker Settings
+mqtt_broker = config.get('mqtt_broker')
+mqtt_port = config.get('mqtt_port')
+mqtt_username = config.get('mqtt_username')
+mqtt_password = config.get('mqtt_password')
+root_topic = config.get('root_topic')
 
-stay_connected = True
-print_node_info =  False
-print_node_position = False
-print_node_telemetry = False
+### Channel & PSK Settings
+channel = config.get('channel')
+key = config.get('key')
+
+### Node Settings
+node_name = config.get('node_name')
+node_number = int(node_name.replace("!", ""), 16) if node_name else None # Convert hex to int and remove '!'
+client_short_name = config.get('client_short_name')
+client_long_name = config.get('client_long_name')
+lat = config.get('lat')
+lon = config.get('lon')
+alt = config.get('alt')
+client_hw_model = config.get('client_hw_model')
 
 
 #################################
