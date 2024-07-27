@@ -66,20 +66,6 @@ lon = config.get('lon')
 alt = config.get('alt')
 client_hw_model = config.get('client_hw_model')
 
-def validate_lat_lon_alt(args):
-    # Check if --alt is provided
-    if args.alt:
-        if not args.lat or not args.lon:
-            parser.error('--alt should not be provided without --lat or --lon.')
-
-    # Check if lat and lon are provided
-    if args.lat or args.lon:
-        # If one of lat or lon is provided, ensure both are provided
-        if not (args.lat and args.lon):
-            parser.error('If you specify --lat or --lon, you must specify both --lat and --lon.')
-
-validate_lat_lon_alt(args)
-
 #################################
 ### Program variables
 
@@ -109,6 +95,18 @@ def generate_hash(name, key):
     h_key = xor_hash(key_bytes)
     result = h_name ^ h_key
     return result
+
+def validate_lat_lon_alt(args):
+    # Check if --alt is provided
+    if args.alt:
+        if not args.lat or not args.lon:
+            parser.error('--alt should not be provided without --lat and --lon.')
+
+    # Check if lat and lon are provided
+    if args.lat or args.lon:
+        # If one of lat or lon is provided, ensure both are provided
+        if not (args.lat and args.lon):
+            parser.error('If you specify --lat or --lon, you must specify both --lat and --lon.')
 
 
 #################################
@@ -317,6 +315,8 @@ def generate_mesh_packet(destination_id, encoded_message):
 
     # Use the global message ID and increment it for the next call
     mesh_packet.id = global_message_id
+    if global_message_id is 2147486647:
+        global_message_id = 0
     global_message_id += 1
     
     setattr(mesh_packet, "from", node_number)
@@ -380,7 +380,7 @@ def connect_mqtt():
     # if debug: print("connect_mqtt")
     global mqtt_broker, mqtt_port, mqtt_username, mqtt_password, root_topic, channel, node_number, db_file_path, key
     if not client.is_connected():
-        if debug: print("connect_mqtt - client is not connected")
+        if debug: print("connect_mqtt")
         try:
             if ':' in mqtt_broker:
                 mqtt_broker,mqtt_port = mqtt_broker.split(':')
@@ -425,6 +425,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
 ############################
 # Main 
 
+
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="", clean_session=True, userdata=None)
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
@@ -441,11 +442,12 @@ if args.message:
     time.sleep(1)
 
 if args.lat:
+    validate_lat_lon_alt(args)
     lat = args.lat
     lon = args.lon
     if args.alt:
         alt = args.alt
-    send_position(BROADCAST_NUM, lat, lon, alt=0)
+    send_position(BROADCAST_NUM, lat, lon, alt=100)
     time.sleep(1)
 
 if not stay_connected:
