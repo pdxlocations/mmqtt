@@ -23,7 +23,7 @@ auto_reconnect_delay = 1 # seconds
 print_service_envelope = False
 print_message_packet = False
 
-stay_connected = True
+stay_connected = False
 print_node_info =  False
 print_node_position = False
 print_node_telemetry = False
@@ -31,9 +31,9 @@ print_node_telemetry = False
 parser = argparse.ArgumentParser(add_help=True)
 parser.add_argument('--config', type=str, default='config.py', help='Path to the config file')
 parser.add_argument('--message', type=str, help='The message to send')
-parser.add_argument('--lat', type=int, help='Latitude coordinate')
-parser.add_argument('--lon', type=int, help='Longitude coordinate')
-parser.add_argument('--alt', type=int, help='Altitude')
+parser.add_argument('--lat', type=float, help='Latitude coordinate')
+parser.add_argument('--lon', type=float, help='Longitude coordinate')
+parser.add_argument('--alt', type=float, help='Altitude')
 args = parser.parse_args()
 
 ### Load Config
@@ -377,9 +377,10 @@ def connect_mqtt():
     if "tls_configured" not in connect_mqtt.__dict__:          #Persistent variable to remember if we've configured TLS yet
         connect_mqtt.tls_configured = False
 
-    if debug: print("connect_mqtt")
+    # if debug: print("connect_mqtt")
     global mqtt_broker, mqtt_port, mqtt_username, mqtt_password, root_topic, channel, node_number, db_file_path, key
     if not client.is_connected():
+        if debug: print("connect_mqtt - client is not connected")
         try:
             if ':' in mqtt_broker:
                 mqtt_broker,mqtt_port = mqtt_broker.split(':')
@@ -392,8 +393,6 @@ def connect_mqtt():
             padded_key = key.ljust(len(key) + ((4 - (len(key) % 4)) % 4), '=')
             replaced_key = padded_key.replace('-', '+').replace('_', '/')
             key = replaced_key
-
-            # if debug: print (f"padded & replaced key = {key}")
 
             client.username_pw_set(mqtt_username, mqtt_password)
             if mqtt_port == 8883 and connect_mqtt.tls_configured == False:
@@ -413,12 +412,6 @@ def on_disconnect(client, userdata, flags, reason_code, properties):
             time.sleep(auto_reconnect_delay)
             connect_mqtt()
 
-
-
-
-############################
-# Main 
-
 def on_connect(client, userdata, flags, reason_code, properties):
     set_topic()
     if client.is_connected():
@@ -429,19 +422,8 @@ def on_connect(client, userdata, flags, reason_code, properties):
         if debug: print(f"Subscribe Topic is: {subscribe_topic}")
         client.subscribe(subscribe_topic)
 
-        # send_node_info(BROADCAST_NUM, want_response=False)
-
-        if args.message:
-            publish_message(BROADCAST_NUM, args.message)
-
-        if args.lat:
-            lat = args.lat
-            lon = args.lon
-            if args.alt:
-                alt = args.alt
-            send_position(BROADCAST_NUM, lat, lon, alt=0)
-    if not stay_connected:
-        client.disconnect()
+############################
+# Main 
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="", clean_session=True, userdata=None)
 client.on_connect = on_connect
@@ -449,5 +431,22 @@ client.on_disconnect = on_disconnect
 client.on_message = on_message
 
 connect_mqtt()
+client.loop()
 
-client.loop_forever()
+send_node_info(BROADCAST_NUM, want_response=False)
+time.sleep(1)
+
+if args.message:
+    publish_message(BROADCAST_NUM, args.message)
+    time.sleep(1)
+
+if args.lat:
+    lat = args.lat
+    lon = args.lon
+    if args.alt:
+        alt = args.alt
+    send_position(BROADCAST_NUM, lat, lon, alt=0)
+    time.sleep(1)
+
+if not stay_connected:
+    client.disconnect()
