@@ -242,6 +242,9 @@ def publish_message(destination_id, message_text):
 def send_node_info(destination_id, want_response):
     if debug: print("send_node_info")
 
+    if not client.is_connected():
+        connect_mqtt()
+
     user_payload = mesh_pb2.User()
     setattr(user_payload, "id", node_name)
     setattr(user_payload, "long_name", client_long_name)
@@ -315,7 +318,7 @@ def generate_mesh_packet(destination_id, encoded_message):
 
     # Use the global message ID and increment it for the next call
     mesh_packet.id = global_message_id
-    if global_message_id is 2147486647:
+    if global_message_id == 2147486647:
         global_message_id = 0
     global_message_id += 1
     
