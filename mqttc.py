@@ -438,11 +438,11 @@ connect_mqtt()
 client.loop()
 
 send_node_info(BROADCAST_NUM, want_response=False)
-time.sleep(1)
+time.sleep(3)
 
 if args.message:
     publish_message(BROADCAST_NUM, args.message)
-    time.sleep(1)
+    time.sleep(3)
 
 if args.lat:
     validate_lat_lon_alt(args)
@@ -450,8 +450,8 @@ if args.lat:
     lon = args.lon
     if args.alt:
         alt = args.alt
-    send_position(BROADCAST_NUM, lat, lon, alt=100)
-    time.sleep(1)
+    send_position(BROADCAST_NUM, lat, lon, alt=0)
+    time.sleep(3)
 
 if not stay_connected:
     client.disconnect()
