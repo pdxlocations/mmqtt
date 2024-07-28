@@ -114,7 +114,6 @@ def validate_lat_lon_alt(args):
 
 def on_message(client, userdata, msg):
     se = mqtt_pb2.ServiceEnvelope()
-    is_encrypted = False
     try:
         se.ParseFromString(msg.payload)
         if print_service_envelope:
@@ -132,7 +131,6 @@ def on_message(client, userdata, msg):
     
     if mp.HasField("encrypted") and not mp.HasField("decoded"):
         decode_encrypted(mp)
-        is_encrypted=True
 
     if mp.decoded.portnum == portnums_pb2.TEXT_MESSAGE_APP:
         try:
@@ -266,50 +264,50 @@ def send_position(destination_id, lat, lon, alt):
 
     global node_number, BROADCAST_NUM
     if debug: print("send_Position")
+
     if not client.is_connected():
-        pass
-    else:
-        if debug: print(f"Sending Position Packet to {str(destination_id)}")
+        connect_mqtt()
 
-        pos_time = int(time.time())
+    if debug: print(f"Sending Position Packet to {str(destination_id)}")
 
-        latitude_str = str(lat)
-        longitude_str = str(lon)
+    pos_time = int(time.time())
+    latitude_str = str(lat)
+    longitude_str = str(lon)
 
-        try:
-            latitude = float(latitude_str)  # Convert latitude to a float
-        except ValueError:
-            latitude = 0.0
-        try:
-            longitude = float(longitude_str)  # Convert longitude to a float
-        except ValueError:
-            longitude = 0.0
+    try:
+        latitude = float(latitude_str)  # Convert latitude to a float
+    except ValueError:
+        latitude = 0.0
+    try:
+        longitude = float(longitude_str)  # Convert longitude to a float
+    except ValueError:
+        longitude = 0.0
 
-        latitude = latitude * 1e7
-        longitude = longitude * 1e7
+    latitude = latitude * 1e7
+    longitude = longitude * 1e7
 
-        latitude_i = int(latitude)
-        longitude_i = int(longitude)
+    latitude_i = int(latitude)
+    longitude_i = int(longitude)
 
-        altitude_str = str(alt)
-        altitude_units = 1 / 3.28084 if 'ft' in altitude_str else 1.0
-        altitude_number_of_units = float(re.sub('[^0-9.]','', altitude_str))
-        altitude_i = int(altitude_units * altitude_number_of_units) # meters
+    altitude_str = str(alt)
+    altitude_units = 1 / 3.28084 if 'ft' in altitude_str else 1.0
+    altitude_number_of_units = float(re.sub('[^0-9.]','', altitude_str))
+    altitude_i = int(altitude_units * altitude_number_of_units) # meters
 
-        position_payload = mesh_pb2.Position()
-        setattr(position_payload, "latitude_i", latitude_i)
-        setattr(position_payload, "longitude_i", longitude_i)
-        setattr(position_payload, "altitude", altitude_i)
-        setattr(position_payload, "time", pos_time)
+    position_payload = mesh_pb2.Position()
+    setattr(position_payload, "latitude_i", latitude_i)
+    setattr(position_payload, "longitude_i", longitude_i)
+    setattr(position_payload, "altitude", altitude_i)
+    setattr(position_payload, "time", pos_time)
 
-        position_payload = position_payload.SerializeToString()
+    position_payload = position_payload.SerializeToString()
 
-        encoded_message = mesh_pb2.Data()
-        encoded_message.portnum = portnums_pb2.POSITION_APP
-        encoded_message.payload = position_payload
-        encoded_message.want_response = True
+    encoded_message = mesh_pb2.Data()
+    encoded_message.portnum = portnums_pb2.POSITION_APP
+    encoded_message.payload = position_payload
+    encoded_message.want_response = True
 
-        generate_mesh_packet(destination_id, encoded_message)
+    generate_mesh_packet(destination_id, encoded_message)
 
 
 def generate_mesh_packet(destination_id, encoded_message):
@@ -403,9 +401,9 @@ def connect_mqtt():
                 client.tls_insecure_set(False)
                 connect_mqtt.tls_configured = True
             client.connect(mqtt_broker, mqtt_port, 60)
-
         except Exception as e:
             print (e)
+        
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
     if debug: print("client is disconnected")
@@ -424,6 +422,8 @@ def on_connect(client, userdata, flags, reason_code, properties):
         if debug: print(f"Publish Topic is: {publish_topic}")
         if debug: print(f"Subscribe Topic is: {subscribe_topic}")
         client.subscribe(subscribe_topic)
+    else:
+        print("Failed to connect, return code %d\n", reason_code)
 
 ############################
 # Main 
@@ -435,7 +435,8 @@ client.on_disconnect = on_disconnect
 client.on_message = on_message
 
 connect_mqtt()
-client.loop()
+client.loop_start()
+time.sleep(1)
 
 send_node_info(BROADCAST_NUM, want_response=False)
 time.sleep(3)
