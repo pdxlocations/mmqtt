@@ -28,6 +28,7 @@ print_node_info =  False
 print_node_position = False
 print_node_telemetry = False
 
+#### Parser Arguments
 parser = argparse.ArgumentParser(add_help=True)
 parser.add_argument('--config', type=str, default='config.py', help='Path to the config file')
 parser.add_argument('--message', type=str, help='The message to send')
@@ -316,7 +317,7 @@ def generate_mesh_packet(destination_id, encoded_message):
 
     # Use the global message ID and increment it for the next call
     mesh_packet.id = global_message_id
-    if global_message_id == 2147486647:
+    if global_message_id == 4294967295:
         global_message_id = 0
     global_message_id += 1
     
@@ -375,10 +376,9 @@ def send_ack(destination_id, message_id):
     
 def connect_mqtt():
 
-    if "tls_configured" not in connect_mqtt.__dict__:          #Persistent variable to remember if we've configured TLS yet
+    if "tls_configured" not in connect_mqtt.__dict__:
         connect_mqtt.tls_configured = False
 
-    # if debug: print("connect_mqtt")
     global mqtt_broker, mqtt_port, mqtt_username, mqtt_password, root_topic, channel, node_number, db_file_path, key
     if not client.is_connected():
         if debug: print("connect_mqtt")
@@ -388,8 +388,7 @@ def connect_mqtt():
                 mqtt_port = int(mqtt_port)
 
             if key == "AQ==":
-                # if debug: print("key is default, expanding to AES128")
-                key = "1PG7OiApB1nwvP+rz05pAQ=="
+                key = default_key
 
             padded_key = key.ljust(len(key) + ((4 - (len(key) % 4)) % 4), '=')
             replaced_key = padded_key.replace('-', '+').replace('_', '/')
