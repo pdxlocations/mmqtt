@@ -263,7 +263,6 @@ def send_node_info(destination_id, want_response):
 
 def send_position(destination_id, lat, lon, alt):
 
-    global node_number, BROADCAST_NUM
     if debug: print("send_Position")
 
     if not client.is_connected():
@@ -379,7 +378,7 @@ def connect_mqtt():
     if "tls_configured" not in connect_mqtt.__dict__:
         connect_mqtt.tls_configured = False
 
-    global mqtt_broker, mqtt_port, mqtt_username, mqtt_password, root_topic, channel, node_number, db_file_path, key
+    global mqtt_broker, mqtt_port, mqtt_username, mqtt_password, root_topic, channel, node_number, key
     if not client.is_connected():
         if debug: print("connect_mqtt")
         try:
