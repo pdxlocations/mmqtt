@@ -122,16 +122,17 @@ def on_message(client, userdata, msg):
             print ("Service Envelope:")
             print (se)
         mp = se.packet
-        if print_message_packet: 
-            print ("")
-            print ("Message Packet:")
-            print(mp)
     except Exception as e:
         print(f"*** ServiceEnvelope: {str(e)}")
         return
     
     if mp.HasField("encrypted") and not mp.HasField("decoded"):
         decode_encrypted(mp)
+
+    if print_message_packet: 
+        print ("")
+        print ("Message Packet:")
+        print(mp)
 
     if mp.decoded.portnum == portnums_pb2.TEXT_MESSAGE_APP:
         try:
@@ -454,3 +455,7 @@ if args.lat:
 
 if not stay_connected:
     client.disconnect()
+else:
+    while True:
+        time.sleep(1)
+    
