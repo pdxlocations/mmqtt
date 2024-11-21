@@ -29,9 +29,9 @@ key = config["channel"]["key"]
 node_id = config["node"]["id"]
 node_short_name = config["node"]["short_name"]
 node_long_name = config["node"]["long_name"]
-lat = config["node"]["lat"]
-lon = config["node"]["lon"]
-alt = config["node"]["alt"]
+lat = config["node"]["lat"] or 0.0
+lon = config["node"]["lon"] or 0.0
+alt = config["node"]["alt"] or 0.0
 node_hw_model = config["node"]["hw_model"]
 
 # Calculate node_number from node_name
