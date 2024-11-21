@@ -26,7 +26,7 @@ channel = config["channel"]["preset"]
 key = config["channel"]["key"]
 
 # Extract node settings
-node_name = config["node"]["id"]
+node_id = config["node"]["id"]
 node_short_name = config["node"]["short_name"]
 node_long_name = config["node"]["long_name"]
 lat = config["node"]["lat"]
@@ -35,7 +35,7 @@ alt = config["node"]["alt"]
 node_hw_model = config["node"]["hw_model"]
 
 # Calculate node_number from node_name
-node_number = int(node_name.replace("!", ""), 16)
+node_number = int(node_id.replace("!", ""), 16)
 
 # Get the full default key
 key = "1PG7OiApB1nwvP+rz05pAQ==" if key == "AQ==" else key
