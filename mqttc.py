@@ -14,7 +14,13 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import argparse
 import re
-import os
+
+
+from load_config import (
+    mqtt_broker, mqtt_port, mqtt_username, mqtt_password,
+    root_topic, channel, key, node_name, node_short_name,
+    node_long_name, lat, lon, alt, node_hw_model, node_number
+)
 
 #### Debug Options
 debug = True
@@ -37,35 +43,8 @@ parser.add_argument('--lon', type=float, help='Longitude coordinate')
 parser.add_argument('--alt', type=float, help='Altitude')
 args = parser.parse_args()
 
-### Load Config
-config_path = args.config if args.config else 'config.py'
-config = {}
-if os.path.exists(config_path):
-    with open(config_path, 'r') as config_file:
-        exec(config_file.read(), config)
-else:
-    raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
-### Broker Settings
-mqtt_broker = config.get('mqtt_broker')
-mqtt_port = config.get('mqtt_port')
-mqtt_username = config.get('mqtt_username')
-mqtt_password = config.get('mqtt_password')
-root_topic = config.get('root_topic')
 
-### Channel & PSK Settings
-channel = config.get('channel')
-key = config.get('key')
-
-### Node Settings
-node_name = config.get('node_name')
-node_number = int(node_name.replace("!", ""), 16) if node_name else None # Convert hex to int and remove '!'
-client_short_name = config.get('client_short_name')
-client_long_name = config.get('client_long_name')
-lat = config.get('lat')
-lon = config.get('lon')
-alt = config.get('alt')
-client_hw_model = config.get('client_hw_model')
 
 #################################
 ### Program variables
@@ -247,9 +226,9 @@ def send_node_info(destination_id, want_response):
 
     user_payload = mesh_pb2.User()
     setattr(user_payload, "id", node_name)
-    setattr(user_payload, "long_name", client_long_name)
-    setattr(user_payload, "short_name", client_short_name)
-    setattr(user_payload, "hw_model", client_hw_model)
+    setattr(user_payload, "long_name", node_long_name)
+    setattr(user_payload, "short_name", node_short_name)
+    setattr(user_payload, "hw_model", node_hw_model)
 
     user_payload = user_payload.SerializeToString()
 
