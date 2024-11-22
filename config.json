@@ -1,0 +1,22 @@
+{
+    "mqtt": {
+      "broker": "mqtt.meshtastic.org",
+      "port": 1883,
+      "user": "meshdev",
+      "pass": "large4cats",
+      "root_topic": "msh/US/OR/2/e/"
+    },
+    "channel": {
+      "preset": "LongFast",
+      "key": "AQ=="
+    },
+    "node": {
+      "id": "!deadbeef",
+      "short_name": "MC",
+      "long_name": "MQTTc",
+      "lat": null,
+      "lon": null,
+      "alt": null,
+      "hw_model": 255
+    }
+  }
