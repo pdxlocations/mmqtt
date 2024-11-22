@@ -4,8 +4,6 @@ import re
 from utils import generate_hash
 from encryption import encrypt_packet
 
-#################################
-# Send Messages
 
 def create_text_payload(node_id, destination_id, message_id, channel, key, message_text):
     encoded_message = mesh_pb2.Data()
@@ -15,22 +13,21 @@ def create_text_payload(node_id, destination_id, message_id, channel, key, messa
     return payload
 
 def create_nodeinfo_payload(node_id, destination_id, node_long_name, node_short_name, node_hw_model, message_id, channel, key, want_response):
-    user_payload = mesh_pb2.User()
-    setattr(user_payload, "id", node_id)
-    setattr(user_payload, "long_name", node_long_name)
-    setattr(user_payload, "short_name", node_short_name)
-    setattr(user_payload, "hw_model", node_hw_model)
+    nodeinfo_payload = mesh_pb2.User()
+    setattr(nodeinfo_payload, "id", node_id)
+    setattr(nodeinfo_payload, "long_name", node_long_name)
+    setattr(nodeinfo_payload, "short_name", node_short_name)
+    setattr(nodeinfo_payload, "hw_model", node_hw_model)
 
-    user_payload = user_payload.SerializeToString()
+    nodeinfo_payload = nodeinfo_payload.SerializeToString()
 
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.NODEINFO_APP
-    encoded_message.payload = user_payload
+    encoded_message.payload = nodeinfo_payload
     encoded_message.want_response = want_response  # Request NodeInfo back
 
     payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
     return payload
-
 
 def create_position_payload(node_id, destination_id, message_id, channel, key, lat, lon, alt):
     pos_time = int(time.time())
@@ -74,9 +71,7 @@ def create_position_payload(node_id, destination_id, message_id, channel, key, l
     return payload
 
 
-
 def send_ack(node_id, destination_id, message_id, channel, key):
-
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.ROUTING_APP
     encoded_message.request_id = message_id
@@ -87,14 +82,10 @@ def send_ack(node_id, destination_id, message_id, channel, key):
 
 
 def generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message):
-
     node_number = int(node_id.replace("!", ""), 16)
     mesh_packet = mesh_pb2.MeshPacket()
 
-    # Use the global message ID and increment it for the next call
     mesh_packet.id = message_id
-
-    
     setattr(mesh_packet, "from", node_number)
     mesh_packet.to = destination_id
     mesh_packet.want_ack = False
@@ -112,6 +103,4 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
     service_envelope.gateway_id = node_id
 
     payload = service_envelope.SerializeToString()
-
     return payload
-

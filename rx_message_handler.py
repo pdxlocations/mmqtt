@@ -2,9 +2,6 @@ from meshtastic import mqtt_pb2, portnums_pb2, mesh_pb2, telemetry_pb2
 from encryption import decrypt_packet
 from load_config import key
 
-#################################
-# Receive Messages
-
 def on_message(client, userdata, msg):
     se = mqtt_pb2.ServiceEnvelope()
     try:
@@ -20,7 +17,8 @@ def on_message(client, userdata, msg):
         return
     
     if mp.HasField("encrypted") and not mp.HasField("decoded"):
-        decrypt_packet(mp, key)
+        decoded_data = decrypt_packet(mp, key)
+        mp.decoded.CopyFrom(decoded_data)
 
     print ("")
     print ("Message Packet:")

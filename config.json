@@ -4,7 +4,7 @@
       "port": 1883,
       "user": "meshdev",
       "pass": "large4cats",
-      "root_topic": "msh/US/OR/mqttc/2/e/"
+      "root_topic": "msh/US/OR/2/e/"
     },
     "channel": {
       "preset": "LongFast",
