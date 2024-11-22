@@ -1,9 +1,14 @@
-from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2
 import time
 import re
+import random
+
+from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2
+
 from utils import generate_hash
 from encryption import encrypt_packet
+from load_config import root_topic, channel, node_id
 
+message_id = random.getrandbits(32)
 
 def create_text_payload(node_id, destination_id, message_id, channel, key, message_text):
     encoded_message = mesh_pb2.Data()
@@ -104,3 +109,17 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
 
     payload = service_envelope.SerializeToString()
     return payload
+
+
+def publish_message(payload_function, client, *args, **kwargs):
+    """Publishes a message to the MQTT broker."""
+    global message_id
+    try:
+        kwargs['message_id'] = message_id
+        payload = payload_function(*args, **kwargs)
+
+        client.publish(root_topic + channel + "/" + node_id, payload)
+        message_id += 1
+
+    except Exception as e:
+        print(f"Error while sending message: {e}")
