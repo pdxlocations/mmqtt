@@ -1,7 +1,7 @@
 import argparse
 import time
 
-from load_config import node_id, channel, key, root_topic, destination_id
+from load_config import node_id, channel, key, destination_id
 from utils import validate_lat_lon_alt
 from tx_message_handler import create_position_payload, create_text_payload, publish_message
 
@@ -19,7 +19,7 @@ def get_args():
 
 
 def handle_args(client, args):
-    
+
     if args.message:
         publish_message(
             create_text_payload,

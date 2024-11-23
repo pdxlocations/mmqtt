@@ -2,6 +2,8 @@ import time
 import ssl
 from load_config import root_topic, channel, node_number
 
+auto_reconnect = True
+auto_reconnect_delay = 1
 
 def set_topic():
     print(f"set_topic: {root_topic}{channel}/")

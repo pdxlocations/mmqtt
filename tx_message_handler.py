@@ -6,7 +6,7 @@ from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2
 
 from utils import generate_hash
 from encryption import encrypt_packet
-from load_config import root_topic, channel, node_id
+from load_config import root_topic, channel, node_id, destination_id, node_long_name, node_short_name, node_hw_model, node_number, key
 
 message_id = random.getrandbits(32)
 
@@ -111,14 +111,38 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
     return payload
 
 
-def publish_message(payload_function, client, *args, **kwargs):
+def send_nodeinfo(client):
+    message_content = {
+        "node_id": node_id,
+        "destination_id": destination_id,
+        "node_long_name": node_long_name,
+        "node_short_name": node_short_name,
+        "node_hw_model": node_hw_model,
+        "channel": channel,
+        "key": key,
+        "want_response": False
+    }
+
+    publish_message(create_nodeinfo_payload, client, **message_content)
+
+
+
+
+def publish_message(payload_function, client, **kwargs):
     """Publishes a message to the MQTT broker."""
     global message_id
     try:
+        # Include the global message ID in kwargs
         kwargs['message_id'] = message_id
-        payload = payload_function(*args, **kwargs)
 
-        client.publish(root_topic + channel + "/" + node_id, payload)
+        # Generate the payload
+        payload = payload_function(**kwargs)
+
+        # Construct the topic dynamically
+        topic = f"{root_topic}{kwargs.get('channel', '')}/{kwargs.get('node_id', '')}"
+        client.publish(topic, payload)
+
+        # Increment the message ID
         message_id += 1
 
     except Exception as e:
