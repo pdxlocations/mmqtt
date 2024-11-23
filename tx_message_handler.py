@@ -110,7 +110,6 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
     payload = service_envelope.SerializeToString()
     return payload
 
-
 def send_nodeinfo(client):
     message_content = {
         "node_id": node_id,
@@ -122,11 +121,7 @@ def send_nodeinfo(client):
         "key": key,
         "want_response": False
     }
-
     publish_message(create_nodeinfo_payload, client, **message_content)
-
-
-
 
 def publish_message(payload_function, client, **kwargs):
     """Publishes a message to the MQTT broker."""

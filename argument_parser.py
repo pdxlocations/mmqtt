@@ -18,8 +18,8 @@ def get_args():
 
 
 
-def handle_args(client, args):
-
+def handle_args(client):
+    parser, args = get_args()
     if args.message:
         publish_message(
             create_text_payload,
