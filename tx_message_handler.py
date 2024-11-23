@@ -70,7 +70,7 @@ def create_position_payload(node_id, destination_id, message_id, channel, key, l
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.POSITION_APP
     encoded_message.payload = position_payload
-    encoded_message.want_response = True
+    encoded_message.want_response = False
 
     payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
     return payload
@@ -93,7 +93,7 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
     mesh_packet.id = message_id
     setattr(mesh_packet, "from", node_number)
     mesh_packet.to = destination_id
-    mesh_packet.rx_time = time.time()
+    # mesh_packet.rx_time = time.time()
     # mesh_packet.rx_snr = 0.0
     mesh_packet.want_ack = False
     mesh_packet.channel = generate_hash(channel, key)
@@ -114,6 +114,20 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
 
     payload = service_envelope.SerializeToString()
     return payload
+
+def send_position(client, lat, lon, alt):
+    message_content = {
+        "node_id": node_id,
+        "destination_id": destination_id,
+        "channel": channel,
+        "key": key,
+        "lat": lat,
+        "lon": lon,
+        "alt": alt
+    }
+    publish_message(create_position_payload, client, **message_content)
+
+
 
 def send_nodeinfo(client):
     message_content = {

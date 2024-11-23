@@ -6,9 +6,9 @@ Powered by Meshtastic™ https://meshtastic.org/
 import time
 import paho.mqtt.client as mqtt
 
-from tx_message_handler import send_nodeinfo
+from tx_message_handler import send_nodeinfo, send_position
 from rx_message_handler import on_message
-from load_config import (mqtt_broker, mqtt_port, mqtt_username, mqtt_password)
+from load_config import mqtt_broker, mqtt_port, mqtt_username, mqtt_password
 from mqtt import connect_mqtt, on_connect, on_disconnect
 from argument_parser import handle_args
 
@@ -24,8 +24,11 @@ def main():
     client.loop_start()
     time.sleep(1)
 
-    send_nodeinfo(client)
-    time.sleep(3)
+    # send_nodeinfo(client)
+    # time.sleep(3)
+
+    # send_position(client, lat=45.0, lon=-120.0, alt=0.0)
+    # time.sleep(3)
 
     handle_args(client)
 
