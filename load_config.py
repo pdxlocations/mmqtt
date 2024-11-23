@@ -1,5 +1,6 @@
 import os
 import json
+from meshtastic import BROADCAST_NUM
 
 ### Load Config
 # Get the directory where the script is located to build the path for the config file
@@ -39,3 +40,5 @@ node_number = int(node_id.replace("!", ""), 16)
 
 # Get the full default key
 key = "1PG7OiApB1nwvP+rz05pAQ==" if key == "AQ==" else key
+
+destination_id = BROADCAST_NUM

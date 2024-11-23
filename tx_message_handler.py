@@ -1,9 +1,14 @@
-from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2
 import time
 import re
+import random
+
+from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2
+
 from utils import generate_hash
 from encryption import encrypt_packet
+from load_config import root_topic, channel, node_id, destination_id, node_long_name, node_short_name, node_hw_model, node_number, key
 
+message_id = random.getrandbits(32)
 
 def create_text_payload(node_id, destination_id, message_id, channel, key, message_text):
     encoded_message = mesh_pb2.Data()
@@ -65,7 +70,7 @@ def create_position_payload(node_id, destination_id, message_id, channel, key, l
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.POSITION_APP
     encoded_message.payload = position_payload
-    encoded_message.want_response = True
+    encoded_message.want_response = False
 
     payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
     return payload
@@ -88,9 +93,14 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
     mesh_packet.id = message_id
     setattr(mesh_packet, "from", node_number)
     mesh_packet.to = destination_id
+    # mesh_packet.rx_time = time.time()
+    # mesh_packet.rx_snr = 0.0
     mesh_packet.want_ack = False
     mesh_packet.channel = generate_hash(channel, key)
+    # mesh_packet.priority = "BACKGROUND"
     mesh_packet.hop_limit = 3
+    # mesh_packet.rx_rssi = 0
+    mesh_packet.hop_start = 3
 
     if key == "":
         mesh_packet.decoded.CopyFrom(encoded_message)
@@ -104,3 +114,50 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
 
     payload = service_envelope.SerializeToString()
     return payload
+
+def send_position(client, lat, lon, alt):
+    message_content = {
+        "node_id": node_id,
+        "destination_id": destination_id,
+        "channel": channel,
+        "key": key,
+        "lat": lat,
+        "lon": lon,
+        "alt": alt
+    }
+    publish_message(create_position_payload, client, **message_content)
+
+
+
+def send_nodeinfo(client):
+    message_content = {
+        "node_id": node_id,
+        "destination_id": destination_id,
+        "node_long_name": node_long_name,
+        "node_short_name": node_short_name,
+        "node_hw_model": node_hw_model,
+        "channel": channel,
+        "key": key,
+        "want_response": False
+    }
+    publish_message(create_nodeinfo_payload, client, **message_content)
+
+def publish_message(payload_function, client, **kwargs):
+    """Publishes a message to the MQTT broker."""
+    global message_id
+    try:
+        # Include the global message ID in kwargs
+        kwargs['message_id'] = message_id
+
+        # Generate the payload
+        payload = payload_function(**kwargs)
+
+        # Construct the topic dynamically
+        topic = f"{root_topic}{kwargs.get('channel', '')}/{kwargs.get('node_id', '')}"
+        client.publish(topic, payload)
+
+        # Increment the message ID
+        message_id += 1
+
+    except Exception as e:
+        print(f"Error while sending message: {e}")
