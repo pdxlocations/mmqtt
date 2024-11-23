@@ -93,9 +93,14 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
     mesh_packet.id = message_id
     setattr(mesh_packet, "from", node_number)
     mesh_packet.to = destination_id
+    mesh_packet.rx_time = time.time()
+    # mesh_packet.rx_snr = 0.0
     mesh_packet.want_ack = False
     mesh_packet.channel = generate_hash(channel, key)
+    # mesh_packet.priority = "BACKGROUND"
     mesh_packet.hop_limit = 3
+    # mesh_packet.rx_rssi = 0
+    mesh_packet.hop_start = 3
 
     if key == "":
         mesh_packet.decoded.CopyFrom(encoded_message)
