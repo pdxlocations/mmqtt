@@ -10,79 +10,37 @@ from load_config import root_topic, channel, node_id, destination_id, node_long_
 
 message_id = random.getrandbits(32)
 
+########## TEXT MESSAGE ##########
 def send_text_message(client, message):
+    """Send a text message."""
     message_content = {
-        "node_id": node_id,
-        "destination_id": destination_id,
-        "channel": channel,
-        "key": key,
-        "message_text": message
+        "message_text": message,
+        "bitfield" : 1
     }
     publish_message(create_text_payload, client, **message_content)
 
+def create_text_payload(message_text):
+    """Create a text message payload."""
+    encoded_message = mesh_pb2.Data()
+    encoded_message.portnum = portnums_pb2.TEXT_MESSAGE_APP 
+    encoded_message.payload = message_text.encode("utf-8")
+    encoded_message.bitfield = 1
+    payload = generate_mesh_packet(encoded_message)
+    return payload
+
+########## NODEINFO ##########
 def send_nodeinfo(client):
+    """Send node information."""
     message_content = {
-        "node_id": node_id,
-        "destination_id": destination_id,
         "node_long_name": node_long_name,
         "node_short_name": node_short_name,
         "node_hw_model": node_hw_model,
-        "channel": channel,
-        "key": key,
         "want_response": False
     }
     publish_message(create_nodeinfo_payload, client, **message_content)
 
-def send_position(client, lat, lon, alt):
-    message_content = {
-        "node_id": node_id,
-        "destination_id": destination_id,
-        "channel": channel,
-        "key": key,
-        "lat": lat,
-        "lon": lon,
-        "alt": alt
-    }
-    publish_message(create_position_payload, client, **message_content)
-
-
-def send_device_telemetry(client, battery_level, voltage, chutil, airtxutil, uptime):
-    message_content = {
-        "node_id": node_id,
-        "destination_id": destination_id,
-        "channel": channel,
-        "key": key,
-        "battery_level": battery_level,
-        "voltage": voltage,
-        "chutil": chutil,
-        "airtxutil": airtxutil,
-        "uptime": uptime
-    }
-    publish_message(create_telemetry_device_payload, client, **message_content)
-
-
-def publish_message(payload_function, client, **kwargs):
-    """Publishes a message to the MQTT broker."""
-    global message_id
-    try:
-        kwargs['message_id'] = message_id
-        payload = payload_function(**kwargs)
-        topic = f"{root_topic}{kwargs.get('channel', '')}/{kwargs.get('node_id', '')}"
-        client.publish(topic, payload)
-        message_id += 1
-
-    except Exception as e:
-        print(f"Error while sending message: {e}")
-
-
-def create_text_payload(node_id, destination_id, message_id, channel, key, message_text):
-    encoded_message = mesh_pb2.Data()
-    encoded_message.portnum = portnums_pb2.TEXT_MESSAGE_APP 
-    encoded_message.payload = message_text.encode("utf-8")
-    payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
-    return payload
-
-def create_nodeinfo_payload(node_id, destination_id, node_long_name, node_short_name, node_hw_model, message_id, channel, key, want_response):
+def create_nodeinfo_payload(node_long_name, node_short_name, node_hw_model, want_response):
+    """Create a node information payload."""
     nodeinfo_payload = mesh_pb2.User()
     setattr(nodeinfo_payload, "id", node_id)
     setattr(nodeinfo_payload, "long_name", node_long_name)
@@ -94,43 +52,35 @@ def create_nodeinfo_payload(node_id, destination_id, node_long_name, node_short_
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.NODEINFO_APP
     encoded_message.payload = nodeinfo_payload
-    encoded_message.want_response = want_response  # Request NodeInfo back
+    encoded_message.want_response = want_response
+    encoded_message.bitfield = 1
 
-    payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
+    payload = generate_mesh_packet(encoded_message)
     return payload
 
 
+########## POSITION ##########
+def send_position(client, lat, lon, alt):
+    """Send position details."""
+    message_content = {
+        "lat": lat,
+        "lon": lon,
+        "alt": alt
+    }
+    publish_message(create_position_payload, client, **message_content)
 
-def create_telemetry_device_payload(node_id, destination_id, battery_level, voltage, chutil, airtxutil, uptime, message_id, channel, key):
-    telemetry_payload = telemetry_pb2.Telemetry()
-    setattr(telemetry_payload.device_metrics, "battery_level", battery_level)
-    setattr(telemetry_payload.device_metrics, "voltage", voltage)
-    setattr(telemetry_payload.device_metrics, "channel_utilization", chutil)
-    setattr(telemetry_payload.device_metrics, "air_util_tx", airtxutil)
-    setattr(telemetry_payload.device_metrics, "uptime_seconds", uptime)
-
-    telemetry_payload = telemetry_payload.device_metrics.SerializeToString()
-
-    encoded_message = mesh_pb2.Data()
-    encoded_message.portnum = portnums_pb2.TELEMETRY_APP
-    encoded_message.payload = telemetry_payload
-
-    payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
-    return payload
-
-
-
-def create_position_payload(node_id, destination_id, message_id, channel, key, lat, lon, alt):
+def create_position_payload(lat, lon, alt):
+    """Create a position payload."""
     pos_time = int(time.time())
     latitude_str = str(lat)
     longitude_str = str(lon)
 
     try:
-        latitude = float(latitude_str)  # Convert latitude to a float
+        latitude = float(latitude_str)
     except ValueError:
         latitude = 0.0
     try:
-        longitude = float(longitude_str)  # Convert longitude to a float
+        longitude = float(longitude_str)
     except ValueError:
         longitude = 0.0
 
@@ -150,8 +100,8 @@ def create_position_payload(node_id, destination_id, message_id, channel, key, l
     setattr(position_payload, "longitude_i", longitude_i)
     setattr(position_payload, "altitude", altitude_i)
     setattr(position_payload, "time", pos_time)
-    setattr(position_payload, "location_source:", "LOC_MANUAL")
-    setattr(position_payload, "precision_bits:", 32)
+    setattr(position_payload, "location_source", "LOC_MANUAL")
+    setattr(position_payload, "precision_bits", 32)
 
     position_payload = position_payload.SerializeToString()
 
@@ -159,25 +109,70 @@ def create_position_payload(node_id, destination_id, message_id, channel, key, l
     encoded_message.portnum = portnums_pb2.POSITION_APP
     encoded_message.payload = position_payload
     encoded_message.want_response = False
+    encoded_message.bitfield = 1
 
-    payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
+    payload = generate_mesh_packet(encoded_message)
     return payload
 
-def send_ack(node_id, destination_id, message_id, channel, key):
+########## DEVICE TELEMETRY ##########
+def send_device_telemetry(client, battery_level, voltage, chutil, airtxutil, uptime):
+    """Send telemetry data."""
+    message_content = {
+        "battery_level": battery_level,
+        "voltage": voltage,
+        "chutil": chutil,
+        "airtxutil": airtxutil,
+        "uptime": uptime
+    }
+    publish_message(create_telemetry_device_payload, client, **message_content)
+
+def create_telemetry_device_payload(battery_level, voltage, chutil, airtxutil, uptime):
+    """Create a telemetry payload."""
+    telemetry_payload = telemetry_pb2.Telemetry()
+    setattr(telemetry_payload.device_metrics, "battery_level", battery_level)
+    setattr(telemetry_payload.device_metrics, "voltage", voltage)
+    setattr(telemetry_payload.device_metrics, "channel_utilization", chutil)
+    setattr(telemetry_payload.device_metrics, "air_util_tx", airtxutil)
+    setattr(telemetry_payload.device_metrics, "uptime_seconds", uptime)
+
+    telemetry_payload = telemetry_payload.device_metrics.SerializeToString()
+
+    encoded_message = mesh_pb2.Data()
+    encoded_message.portnum = portnums_pb2.TELEMETRY_APP
+    encoded_message.payload = telemetry_payload
+    encoded_message.bitfield = 1
+
+    payload = generate_mesh_packet(encoded_message)
+    return payload
+
+########## ACK ########## # UNUSED
+def create_ack_payload():
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.ROUTING_APP
     encoded_message.request_id = message_id
     encoded_message.payload = b"\030\000"
-
-    payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
+    payload = generate_mesh_packet(encoded_message)
     return payload
 
+####################
+def publish_message(payload_function, client, **kwargs):
+    """Publishes a message to the MQTT broker."""
+    try:
+        payload = payload_function(**kwargs)
+        topic = f"{root_topic}{channel}/{node_id}"
+        client.publish(topic, payload)
+    except Exception as e:
+        print(f"Error while sending message: {e}")
 
-def generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message):
+def generate_mesh_packet(encoded_message):
+    """Generate the final mesh packet."""
+    global message_id
+    message_id += 1
+
     node_number = int(node_id.replace("!", ""), 16)
     mesh_packet = mesh_pb2.MeshPacket()
-
     mesh_packet.id = message_id
+
     setattr(mesh_packet, "from", node_number)
     mesh_packet.to = destination_id
     # mesh_packet.rx_time = time.time()

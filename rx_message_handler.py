@@ -30,7 +30,12 @@ def on_message(client, userdata, msg):
             from_str = getattr(mp, "from")
             from_id = '!' + hex(from_str)[2:]
             text_payload = mp.decoded.payload.decode("utf-8")
-            print(f"{from_id}: {text_payload}")
+
+            print ("")
+            print ("Message Payload:")
+            print (mp.decoded)
+            # print(f"{from_id}: {text_payload}")
+
         except Exception as e:
             print(f"*** TEXT_MESSAGE_APP: {str(e)}")
         
@@ -59,14 +64,14 @@ def on_message(client, userdata, msg):
             print(f"*** POSITION_APP: {str(e)}")
 
     elif mp.decoded.portnum == portnums_pb2.TELEMETRY_APP:
-
-
-
-
         telem = telemetry_pb2.Telemetry()
         device_metrics  = telem.device_metrics
+        environment_metrics  = telem.environment_metrics
+        power_metrics  = telem.power_metrics
         try:
             device_metrics.ParseFromString(mp.decoded.payload)
+            environment_metrics.ParseFromString(mp.decoded.payload)
+            power_metrics.ParseFromString(mp.decoded.payload)
 
             print("")
             print("Telemetry:")
@@ -74,7 +79,6 @@ def on_message(client, userdata, msg):
 
         except Exception as e:
             print(f"*** TELEMETRY_APP: {str(e)}")
-
 
 
     elif handler.protobufFactory is not None:
