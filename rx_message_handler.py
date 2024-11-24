@@ -1,4 +1,5 @@
 from meshtastic import mqtt_pb2, portnums_pb2, mesh_pb2, telemetry_pb2
+from meshtastic import protocols
 from encryption import decrypt_packet
 from load_config import key
 
@@ -58,9 +59,14 @@ def on_message(client, userdata, msg):
             print(f"*** POSITION_APP: {str(e)}")
 
     elif mp.decoded.portnum == portnums_pb2.TELEMETRY_APP:
+
+
+
+
         telem = telemetry_pb2.Telemetry()
+        device_metrics  = telem.device_metrics
         try:
-            telem.ParseFromString(mp.decoded.payload)
+            device_metrics.ParseFromString(mp.decoded.payload)
 
             print("")
             print("Telemetry:")
@@ -69,20 +75,31 @@ def on_message(client, userdata, msg):
         except Exception as e:
             print(f"*** TELEMETRY_APP: {str(e)}")
 
-        rssi = getattr(mp, "rx_rssi")
 
-        # Device Metrics
-        device_metrics_dict = {
-            'Battery Level': telem.device_metrics.battery_level,
-            'Voltage': round(telem.device_metrics.voltage, 2),
-            'Channel Utilization': round(telem.device_metrics.channel_utilization, 1),
-            'Air Utilization': round(telem.device_metrics.air_util_tx, 1)
-        }
 
-        # Environment Metrics
-        environment_metrics_dict = {
-            'Temp': round(telem.environment_metrics.temperature, 2),
-            'Humidity': round(telem.environment_metrics.relative_humidity, 0),
-            'Pressure': round(telem.environment_metrics.barometric_pressure, 2),
-            'Gas Resistance': round(telem.environment_metrics.gas_resistance, 2)
-        }
+    elif handler.protobufFactory is not None:
+            portNumInt = mp.decoded.portnum
+            handler = protocols.get(portNumInt)
+            pb = handler.protobufFactory()
+            pb.ParseFromString(mp.decoded.payload)
+            print("")
+            print("Mesh Packet:")
+            print(pb)
+
+        # rssi = getattr(mp, "rx_rssi")
+
+        # # Device Metrics
+        # device_metrics_dict = {
+        #     'Battery Level': telem.device_metrics.battery_level,
+        #     'Voltage': round(telem.device_metrics.voltage, 2),
+        #     'Channel Utilization': round(telem.device_metrics.channel_utilization, 1),
+        #     'Air Utilization': round(telem.device_metrics.air_util_tx, 1)
+        # }
+
+        # # Environment Metrics
+        # environment_metrics_dict = {
+        #     'Temp': round(telem.environment_metrics.temperature, 2),
+        #     'Humidity': round(telem.environment_metrics.relative_humidity, 0),
+        #     'Pressure': round(telem.environment_metrics.barometric_pressure, 2),
+        #     'Gas Resistance': round(telem.environment_metrics.gas_resistance, 2)
+        # }

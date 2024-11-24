@@ -2,13 +2,78 @@ import time
 import re
 import random
 
-from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2
+from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2, telemetry_pb2
 
 from utils import generate_hash
 from encryption import encrypt_packet
 from load_config import root_topic, channel, node_id, destination_id, node_long_name, node_short_name, node_hw_model, node_number, key
 
 message_id = random.getrandbits(32)
+
+def send_text_message(client, message):
+    message_content = {
+        "node_id": node_id,
+        "destination_id": destination_id,
+        "channel": channel,
+        "key": key,
+        "message_text": message
+    }
+    publish_message(create_text_payload, client, **message_content)
+
+def send_nodeinfo(client):
+    message_content = {
+        "node_id": node_id,
+        "destination_id": destination_id,
+        "node_long_name": node_long_name,
+        "node_short_name": node_short_name,
+        "node_hw_model": node_hw_model,
+        "channel": channel,
+        "key": key,
+        "want_response": False
+    }
+    publish_message(create_nodeinfo_payload, client, **message_content)
+
+def send_position(client, lat, lon, alt):
+    message_content = {
+        "node_id": node_id,
+        "destination_id": destination_id,
+        "channel": channel,
+        "key": key,
+        "lat": lat,
+        "lon": lon,
+        "alt": alt
+    }
+    publish_message(create_position_payload, client, **message_content)
+
+
+def send_device_telemetry(client, battery_level, voltage, chutil, airtxutil, uptime):
+    message_content = {
+        "node_id": node_id,
+        "destination_id": destination_id,
+        "channel": channel,
+        "key": key,
+        "battery_level": battery_level,
+        "voltage": voltage,
+        "chutil": chutil,
+        "airtxutil": airtxutil,
+        "uptime": uptime
+    }
+    publish_message(create_telemetry_device_payload, client, **message_content)
+
+
+def publish_message(payload_function, client, **kwargs):
+    """Publishes a message to the MQTT broker."""
+    global message_id
+    try:
+        kwargs['message_id'] = message_id
+        payload = payload_function(**kwargs)
+        topic = f"{root_topic}{kwargs.get('channel', '')}/{kwargs.get('node_id', '')}"
+        client.publish(topic, payload)
+        message_id += 1
+
+    except Exception as e:
+        print(f"Error while sending message: {e}")
+
 
 def create_text_payload(node_id, destination_id, message_id, channel, key, message_text):
     encoded_message = mesh_pb2.Data()
@@ -33,6 +98,27 @@ def create_nodeinfo_payload(node_id, destination_id, node_long_name, node_short_
 
     payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
     return payload
+
+
+
+def create_telemetry_device_payload(node_id, destination_id, battery_level, voltage, chutil, airtxutil, uptime, message_id, channel, key):
+    telemetry_payload = telemetry_pb2.Telemetry()
+    setattr(telemetry_payload.device_metrics, "battery_level", battery_level)
+    setattr(telemetry_payload.device_metrics, "voltage", voltage)
+    setattr(telemetry_payload.device_metrics, "channel_utilization", chutil)
+    setattr(telemetry_payload.device_metrics, "air_util_tx", airtxutil)
+    setattr(telemetry_payload.device_metrics, "uptime_seconds", uptime)
+
+    telemetry_payload = telemetry_payload.device_metrics.SerializeToString()
+
+    encoded_message = mesh_pb2.Data()
+    encoded_message.portnum = portnums_pb2.TELEMETRY_APP
+    encoded_message.payload = telemetry_payload
+
+    payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
+    return payload
+
+
 
 def create_position_payload(node_id, destination_id, message_id, channel, key, lat, lon, alt):
     pos_time = int(time.time())
@@ -64,6 +150,8 @@ def create_position_payload(node_id, destination_id, message_id, channel, key, l
     setattr(position_payload, "longitude_i", longitude_i)
     setattr(position_payload, "altitude", altitude_i)
     setattr(position_payload, "time", pos_time)
+    setattr(position_payload, "location_source:", "LOC_MANUAL")
+    setattr(position_payload, "precision_bits:", 32)
 
     position_payload = position_payload.SerializeToString()
 
@@ -74,7 +162,6 @@ def create_position_payload(node_id, destination_id, message_id, channel, key, l
 
     payload = generate_mesh_packet(node_id, destination_id, message_id, channel, key, encoded_message)
     return payload
-
 
 def send_ack(node_id, destination_id, message_id, channel, key):
     encoded_message = mesh_pb2.Data()
@@ -114,50 +201,3 @@ def generate_mesh_packet(node_id, destination_id, message_id, channel, key, enco
 
     payload = service_envelope.SerializeToString()
     return payload
-
-def send_position(client, lat, lon, alt):
-    message_content = {
-        "node_id": node_id,
-        "destination_id": destination_id,
-        "channel": channel,
-        "key": key,
-        "lat": lat,
-        "lon": lon,
-        "alt": alt
-    }
-    publish_message(create_position_payload, client, **message_content)
-
-
-
-def send_nodeinfo(client):
-    message_content = {
-        "node_id": node_id,
-        "destination_id": destination_id,
-        "node_long_name": node_long_name,
-        "node_short_name": node_short_name,
-        "node_hw_model": node_hw_model,
-        "channel": channel,
-        "key": key,
-        "want_response": False
-    }
-    publish_message(create_nodeinfo_payload, client, **message_content)
-
-def publish_message(payload_function, client, **kwargs):
-    """Publishes a message to the MQTT broker."""
-    global message_id
-    try:
-        # Include the global message ID in kwargs
-        kwargs['message_id'] = message_id
-
-        # Generate the payload
-        payload = payload_function(**kwargs)
-
-        # Construct the topic dynamically
-        topic = f"{root_topic}{kwargs.get('channel', '')}/{kwargs.get('node_id', '')}"
-        client.publish(topic, payload)
-
-        # Increment the message ID
-        message_id += 1
-
-    except Exception as e:
-        print(f"Error while sending message: {e}")
