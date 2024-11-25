@@ -42,8 +42,8 @@ def validate_lat_lon_alt(parser, args):
             parser.error('--alt should not be provided without --lat and --lon.')
 
     # Check if lat and lon are provided
-    if args.lat or args.lon:
-        # If one of lat or lon is provided, ensure both are provided
+    if args.lat or args.lon or args.pre:
+        # If one of lat lon or pre is provided, ensure lat and lon are provided
         if not (args.lat and args.lon):
-            parser.error('If you specify --lat or --lon, you must specify both --lat and --lon.')
+            parser.error('If you specify --lat, --lon, or --pre, you must specify both --lat and --lon.')
 
