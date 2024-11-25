@@ -28,11 +28,10 @@ def generate_hash(name: str, key: str) -> int:
     result: int = h_name ^ h_key
     return result
 
-def message_id():
+def get_message_id(message_id):
     if message_id == 4294967295:
         message_id = 0
     message_id += 1
-
     return message_id
 
 

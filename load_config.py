@@ -34,6 +34,7 @@ lat = config["node"]["lat"] or 0.0
 lon = config["node"]["lon"] or 0.0
 alt = config["node"]["alt"] or 0.0
 node_hw_model = config["node"]["hw_model"]
+position_precision = config["node"]["precision"]
 
 # Calculate node_number from node_name
 node_number = int(node_id.replace("!", ""), 16)

@@ -4,9 +4,9 @@ import random
 
 from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2, telemetry_pb2
 
-from utils import generate_hash
+from utils import generate_hash, get_message_id
 from encryption import encrypt_packet
-from load_config import root_topic, channel, node_id, destination_id, node_long_name, node_short_name, node_hw_model, node_number, key
+from load_config import root_topic, channel, node_id, destination_id, node_long_name, node_short_name, node_hw_model, key, position_precision
 
 message_id = random.getrandbits(32)
 
@@ -14,8 +14,7 @@ message_id = random.getrandbits(32)
 def send_text_message(client, message):
     """Send a text message."""
     message_content = {
-        "message_text": message,
-        "bitfield" : 1
+        "message_text": message
     }
     publish_message(create_text_payload, client, **message_content)
 
@@ -37,21 +36,21 @@ def send_nodeinfo(client):
         "node_hw_model": node_hw_model,
         "want_response": False
     }
-    publish_message(create_nodeinfo_payload, client, **message_content)
+    publish_message(create_nodeinfo_data, client, **message_content)
 
-def create_nodeinfo_payload(node_long_name, node_short_name, node_hw_model, want_response):
+def create_nodeinfo_data(node_long_name, node_short_name, node_hw_model, want_response):
     """Create a node information payload."""
-    nodeinfo_payload = mesh_pb2.User()
-    setattr(nodeinfo_payload, "id", node_id)
-    setattr(nodeinfo_payload, "long_name", node_long_name)
-    setattr(nodeinfo_payload, "short_name", node_short_name)
-    setattr(nodeinfo_payload, "hw_model", node_hw_model)
+    nodeinfo_data = mesh_pb2.User()
+    nodeinfo_data.id = node_id
+    nodeinfo_data.long_name = node_long_name
+    nodeinfo_data.short_name = node_short_name
+    nodeinfo_data.hw_model = node_hw_model
 
-    nodeinfo_payload = nodeinfo_payload.SerializeToString()
+    nodeinfo_data = nodeinfo_data.SerializeToString()
 
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.NODEINFO_APP
-    encoded_message.payload = nodeinfo_payload
+    encoded_message.payload = nodeinfo_data
     encoded_message.want_response = want_response
     encoded_message.bitfield = 1
 
@@ -60,16 +59,17 @@ def create_nodeinfo_payload(node_long_name, node_short_name, node_hw_model, want
 
 
 ########## POSITION ##########
-def send_position(client, lat, lon, alt):
+def send_position(client, lat, lon, alt, pre):
     """Send position details."""
     message_content = {
         "lat": lat,
         "lon": lon,
-        "alt": alt
+        "alt": alt,
+        "pre": pre
     }
-    publish_message(create_position_payload, client, **message_content)
+    publish_message(create_position_data, client, **message_content)
 
-def create_position_payload(lat, lon, alt):
+def create_position_data(lat, lon, alt, pre):
     """Create a position payload."""
     pos_time = int(time.time())
     latitude_str = str(lat)
@@ -95,19 +95,20 @@ def create_position_payload(lat, lon, alt):
     altitude_number_of_units = float(re.sub('[^0-9.]','', altitude_str))
     altitude_i = int(altitude_units * altitude_number_of_units) # meters
 
-    position_payload = mesh_pb2.Position()
-    setattr(position_payload, "latitude_i", latitude_i)
-    setattr(position_payload, "longitude_i", longitude_i)
-    setattr(position_payload, "altitude", altitude_i)
-    setattr(position_payload, "time", pos_time)
-    setattr(position_payload, "location_source", "LOC_MANUAL")
-    setattr(position_payload, "precision_bits", 32)
+    position_data = mesh_pb2.Position()
 
-    position_payload = position_payload.SerializeToString()
+    position_data.latitude_i = latitude_i
+    position_data.longitude_i = longitude_i
+    position_data.altitude = altitude_i
+    position_data.time = pos_time
+    position_data.location_source = "LOC_MANUAL"
+    position_data.precision_bits = pre
+
+    position_data = position_data.SerializeToString()
 
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.POSITION_APP
-    encoded_message.payload = position_payload
+    encoded_message.payload = position_data
     encoded_message.want_response = False
     encoded_message.bitfield = 1
 
@@ -124,22 +125,24 @@ def send_device_telemetry(client, battery_level, voltage, chutil, airtxutil, upt
         "airtxutil": airtxutil,
         "uptime": uptime
     }
-    publish_message(create_telemetry_device_payload, client, **message_content)
+    publish_message(create_telemetry_device_data, client, **message_content)
 
-def create_telemetry_device_payload(battery_level, voltage, chutil, airtxutil, uptime):
+def create_telemetry_device_data(battery_level, voltage, chutil, airtxutil, uptime):
     """Create a telemetry payload."""
-    telemetry_payload = telemetry_pb2.Telemetry()
-    setattr(telemetry_payload.device_metrics, "battery_level", battery_level)
-    setattr(telemetry_payload.device_metrics, "voltage", voltage)
-    setattr(telemetry_payload.device_metrics, "channel_utilization", chutil)
-    setattr(telemetry_payload.device_metrics, "air_util_tx", airtxutil)
-    setattr(telemetry_payload.device_metrics, "uptime_seconds", uptime)
+    telemetry_data = telemetry_pb2.Telemetry()
 
-    telemetry_payload = telemetry_payload.device_metrics.SerializeToString()
+    telemetry_data.time = (int(time.time()))
+    telemetry_data.device_metrics.battery_level = battery_level
+    telemetry_data.device_metrics.voltage = voltage
+    telemetry_data.device_metrics.channel_utilization = chutil
+    telemetry_data.device_metrics.air_util_tx = airtxutil
+    telemetry_data.device_metrics.uptime_seconds = uptime
+
+    telemetry_data = telemetry_data.SerializeToString()
 
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnums_pb2.TELEMETRY_APP
-    encoded_message.payload = telemetry_payload
+    encoded_message.payload = telemetry_data
     encoded_message.bitfield = 1
 
     payload = generate_mesh_packet(encoded_message)
@@ -167,7 +170,7 @@ def publish_message(payload_function, client, **kwargs):
 def generate_mesh_packet(encoded_message):
     """Generate the final mesh packet."""
     global message_id
-    message_id += 1
+    message_id = get_message_id(message_id)
 
     node_number = int(node_id.replace("!", ""), 16)
     mesh_packet = mesh_pb2.MeshPacket()

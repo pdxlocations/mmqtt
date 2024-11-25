@@ -1,6 +1,6 @@
 import time
 import ssl
-from load_config import root_topic, channel, node_number
+from load_config import root_topic, channel, node_number, mqtt_broker, mqtt_port, mqtt_username, mqtt_password
 
 auto_reconnect = True
 auto_reconnect_delay = 1
@@ -44,7 +44,7 @@ def on_disconnect(client, userdata, flags, reason_code, properties):
         if auto_reconnect == True:
             print("attempting to reconnect in " + str(auto_reconnect_delay) + " second(s)")
             time.sleep(auto_reconnect_delay)
-            connect_mqtt()
+            connect_mqtt(client, mqtt_broker, mqtt_port, mqtt_username, mqtt_password)
 
 def on_connect(client, userdata, flags, reason_code, properties):
 

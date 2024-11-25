@@ -65,17 +65,27 @@ def on_message(client, userdata, msg):
 
     elif mp.decoded.portnum == portnums_pb2.TELEMETRY_APP:
         telem = telemetry_pb2.Telemetry()
-        device_metrics  = telem.device_metrics
-        environment_metrics  = telem.environment_metrics
-        power_metrics  = telem.power_metrics
         try:
-            device_metrics.ParseFromString(mp.decoded.payload)
-            environment_metrics.ParseFromString(mp.decoded.payload)
-            power_metrics.ParseFromString(mp.decoded.payload)
+            # Parse the payload into the main telemetry message
+            telem.ParseFromString(mp.decoded.payload)
 
-            print("")
-            print("Telemetry:")
-            print(telem)
+            # Check and parse device_metrics if available
+            if telem.HasField("device_metrics"):
+                device_metrics = telem.device_metrics
+                print("Device Metrics:")
+                print(device_metrics)
+
+            # Check and parse environment_metrics if available
+            if telem.HasField("environment_metrics"):
+                environment_metrics = telem.environment_metrics
+                print("Environment Metrics:")
+                print(environment_metrics)
+
+            # Check and parse power_metrics if available
+            if telem.HasField("power_metrics"):
+                power_metrics = telem.power_metrics
+                print("Power Metrics:")
+                print(power_metrics)
 
         except Exception as e:
             print(f"*** TELEMETRY_APP: {str(e)}")
