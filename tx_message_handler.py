@@ -6,7 +6,7 @@ from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2, telemetry_pb2
 
 from utils import generate_hash, get_message_id
 from encryption import encrypt_packet
-from load_config import root_topic, channel, node_id, destination_id, node_long_name, node_short_name, node_hw_model, key, position_precision
+from load_config import config
 
 message_id = random.getrandbits(32)
 
@@ -28,12 +28,12 @@ def create_text_payload(message_text):
     return payload
 
 ########## NODEINFO ##########
-def send_nodeinfo(client):
+def send_nodeinfo(client, long, short, hw):
     """Send node information."""
     message_content = {
-        "node_long_name": node_long_name,
-        "node_short_name": node_short_name,
-        "node_hw_model": node_hw_model,
+        "node_long_name": long,
+        "node_short_name": short,
+        "node_hw_model": hw,
         "want_response": False
     }
     publish_message(create_nodeinfo_data, client, **message_content)
@@ -41,7 +41,7 @@ def send_nodeinfo(client):
 def create_nodeinfo_data(node_long_name, node_short_name, node_hw_model, want_response):
     """Create a node information payload."""
     nodeinfo_data = mesh_pb2.User()
-    nodeinfo_data.id = node_id
+    nodeinfo_data.id = config.node.id
     nodeinfo_data.long_name = node_long_name
     nodeinfo_data.short_name = node_short_name
     nodeinfo_data.hw_model = node_hw_model
@@ -162,7 +162,7 @@ def publish_message(payload_function, client, **kwargs):
     """Publishes a message to the MQTT broker."""
     try:
         payload = payload_function(**kwargs)
-        topic = f"{root_topic}{channel}/{node_id}"
+        topic = f"{config.mqtt.root_topic}{config.channel.preset}/{config.node.id}"
         client.publish(topic, payload)
     except Exception as e:
         print(f"Error while sending message: {e}")
@@ -172,30 +172,30 @@ def generate_mesh_packet(encoded_message):
     global message_id
     message_id = get_message_id(message_id)
 
-    node_number = int(node_id.replace("!", ""), 16)
+    node_number = int(config.node.id.replace("!", ""), 16)
     mesh_packet = mesh_pb2.MeshPacket()
     mesh_packet.id = message_id
 
     setattr(mesh_packet, "from", node_number)
-    mesh_packet.to = destination_id
+    mesh_packet.to = config.destination_id
     # mesh_packet.rx_time = time.time()
     # mesh_packet.rx_snr = 0.0
     mesh_packet.want_ack = False
-    mesh_packet.channel = generate_hash(channel, key)
+    mesh_packet.channel = generate_hash(config.channel.preset, config.channel.key)
     # mesh_packet.priority = "BACKGROUND"
     mesh_packet.hop_limit = 3
     # mesh_packet.rx_rssi = 0
     mesh_packet.hop_start = 3
 
-    if key == "":
+    if config.channel.key == "":
         mesh_packet.decoded.CopyFrom(encoded_message)
     else:
-        mesh_packet.encrypted = encrypt_packet(channel, key, mesh_packet, encoded_message)
+        mesh_packet.encrypted = encrypt_packet(config.channel.preset, config.channel.key, mesh_packet, encoded_message)
 
     service_envelope = mqtt_pb2.ServiceEnvelope()
     service_envelope.packet.CopyFrom(mesh_packet)
-    service_envelope.channel_id = channel
-    service_envelope.gateway_id = node_id
+    service_envelope.channel_id = config.channel.preset
+    service_envelope.gateway_id = config.node.id
 
     payload = service_envelope.SerializeToString()
     return payload

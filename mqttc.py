@@ -4,34 +4,35 @@ Powered by Meshtastic™ https://meshtastic.org/
 """
 
 import time
-import paho.mqtt.client as mqtt
 
 from tx_message_handler import send_nodeinfo, send_position, send_device_telemetry, send_text_message
-from load_config import mqtt_broker, mqtt_port, mqtt_username, mqtt_password, lat, lon, alt, position_precision
+from load_config import config
 from mqtt_handler import connect_mqtt
-from argument_parser import handle_args
+from argument_parser import handle_args, get_args
 
-stay_connected = True
-
+stay_connected = False
 
 def main():
-    client = connect_mqtt(mqtt_broker, mqtt_port, mqtt_username, mqtt_password)
     
-    if handle_args(client) == None:
+    client = connect_mqtt()
 
-        send_nodeinfo(client)
-        time.sleep(3)
+    # if handle_args(client) == None:
 
-        # send_position(client, lat=lat, lon=lon, alt=alt, pre=position_precision)
-        # time.sleep(3)
+    send_nodeinfo(client, config.node.short_name, config.node.long_name, config.node.hw_model)
+    time.sleep(3)
 
-        # send_device_telemetry(client, battery_level=99, voltage=4.0, chutil=3, airtxutil=1, uptime=420)
-        # time.sleep(3)
+    send_position(client, config.node.lat, config.node.lon, config.node.alt, config.node.precision)
+    time.sleep(3)
 
-        # send_text_message(client, "Happy New Year!")
-        # time.sleep(3)
 
-   
+
+    # send_device_telemetry(client, battery_level=99, voltage=4.0, chutil=3, airtxutil=1, uptime=420)
+    # time.sleep(3)
+
+    # send_text_message(client, "Happy New Year!")
+    # time.sleep(3)
+
+
     if not stay_connected:
         client.disconnect()
     else:

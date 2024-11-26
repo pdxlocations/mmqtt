@@ -1,57 +1,40 @@
 import os
 import json
+from types import SimpleNamespace
 from meshtastic import BROADCAST_NUM
 
-### Load Config
-# Get the directory where the script is located to build the path for the config file
-script_dir = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(script_dir, 'config.json')
 
-# Load configuration from the config.py file
-config = {}
-if os.path.exists(config_path):
+def load_config(filename="config.json"):
+    """
+    Load and return all configuration variables from the config.json file,
+    accessible via dot notation (e.g., config.mqtt.broker).
+    
+    Returns:
+        SimpleNamespace: A nested namespace representing the configuration.
+    """
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(script_dir, filename)
+
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+    
     with open(config_path, 'r') as config_file:
         config = json.load(config_file)
-else:
-    raise FileNotFoundError(f"Configuration file not found: {config_path}")
-
-# def load_config_file(config_file_path='config.json'):
-#     """Load configuration dynamically from a given file path."""
-#     if not os.path.exists(config_file_path):
-#         raise FileNotFoundError(f"Configuration file not found: {config_file_path}")
     
-#     with open(config_file_path, 'r') as file:
-#         return json.load(file)
+    config["channel"]["key"] = "1PG7OiApB1nwvP+rz05pAQ==" if config["channel"]["key"] == "AQ==" else config["channel"]["key"]
+    config["node"]["number"] = int(config["node"]["id"].replace("!", ""), 16)
+    config["destination_id"] = BROADCAST_NUM
 
-# # Default configuration loading
-# config = load_config_file()
+    # Convert to nested SimpleNamespace for dot notation
+    def dict_to_namespace(data):
+        if isinstance(data, dict):
+            return SimpleNamespace(**{k: dict_to_namespace(v) for k, v in data.items()})
+        return data
 
+    return dict_to_namespace(config)
 
-# Extract MQTT settings
-mqtt_broker = config["mqtt"]["broker"]
-mqtt_port = config["mqtt"]["port"]
-mqtt_username = config["mqtt"]["user"]
-mqtt_password = config["mqtt"]["pass"]
-root_topic = config["mqtt"]["root_topic"]
+config = load_config()
 
-# Extract channel settings
-channel = config["channel"]["preset"]
-key = config["channel"]["key"]
-
-# Extract node settings
-node_id = config["node"]["id"]
-node_short_name = config["node"]["short_name"]
-node_long_name = config["node"]["long_name"]
-lat = config["node"]["lat"] or 0.0
-lon = config["node"]["lon"] or 0.0
-alt = config["node"]["alt"] or 0.0
-node_hw_model = config["node"]["hw_model"]
-position_precision = config["node"]["precision"]
-
-# Calculate node_number from node_name
-node_number = int(node_id.replace("!", ""), 16)
-
-# Get the full default key
-key = "1PG7OiApB1nwvP+rz05pAQ==" if key == "AQ==" else key
-
-destination_id = BROADCAST_NUM
+if __name__ == "__main__":
+    print(json.dumps(config, default=lambda o: o.__dict__, indent=4))
