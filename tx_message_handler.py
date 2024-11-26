@@ -6,8 +6,8 @@ from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2, telemetry_pb2
 
 from utils import generate_hash, get_message_id
 from encryption import encrypt_packet
-from load_config import config
-
+# from load_config import config
+from load_config import ConfigLoader
 message_id = random.getrandbits(32)
 
 ########## TEXT MESSAGE ##########
@@ -40,6 +40,8 @@ def send_nodeinfo(client, long, short, hw):
 
 def create_nodeinfo_data(node_long_name, node_short_name, node_hw_model, want_response):
     """Create a node information payload."""
+
+    config = ConfigLoader.get_config()
     nodeinfo_data = mesh_pb2.User()
     nodeinfo_data.id = config.node.id
     nodeinfo_data.long_name = node_long_name
@@ -160,6 +162,8 @@ def create_ack_payload():
 ####################
 def publish_message(payload_function, client, **kwargs):
     """Publishes a message to the MQTT broker."""
+
+    config = ConfigLoader.get_config()
     try:
         payload = payload_function(**kwargs)
         topic = f"{config.mqtt.root_topic}{config.channel.preset}/{config.node.id}"
@@ -169,6 +173,8 @@ def publish_message(payload_function, client, **kwargs):
 
 def generate_mesh_packet(encoded_message):
     """Generate the final mesh packet."""
+
+    config = ConfigLoader.get_config()
     global message_id
     message_id = get_message_id(message_id)
 

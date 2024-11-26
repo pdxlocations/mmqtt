@@ -3,13 +3,14 @@ import ssl
 import paho.mqtt.client as mqtt
 
 from rx_message_handler import on_message
-from load_config import config
+from load_config import ConfigLoader
 
 auto_reconnect = True
 auto_reconnect_delay = 1
 
 
 def set_topic():
+    config = ConfigLoader.get_config()
     print(f"set_topic: {config.mqtt.root_topic}{config.channel.preset}/")
     node_name = '!' + hex(config.node.number)[2:]
     subscribe_topic = config.mqtt.root_topic + config.channel.preset + "/#"
@@ -17,6 +18,7 @@ def set_topic():
     return subscribe_topic, publish_topic
 
 def connect_mqtt():
+    config = ConfigLoader.get_config()
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="", clean_session=True, userdata=None)
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
@@ -52,7 +54,6 @@ def on_disconnect(client, userdata, flags, reason_code, properties):
             connect_mqtt()
 
 def on_connect(client, userdata, flags, reason_code, properties):
-    global config
     if client.is_connected():
         print("client is connected")
 
