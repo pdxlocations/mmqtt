@@ -3,7 +3,7 @@
       "broker": "mqtt.meshtastic.org",
       "port": 1883,
       "user": "meshdev",
-      "pass": "large4cats",
+      "password": "large4cats",
       "root_topic": "msh/US/2/e/"
     },
     "channel": {

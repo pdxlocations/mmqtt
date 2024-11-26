@@ -1,9 +1,11 @@
 from meshtastic import mqtt_pb2, portnums_pb2, mesh_pb2, telemetry_pb2
 from meshtastic import protocols
 from encryption import decrypt_packet
-from load_config import key
+# from load_config import config
+from load_config import ConfigLoader
 
 def on_message(client, userdata, msg):
+    config = ConfigLoader.get_config()
     se = mqtt_pb2.ServiceEnvelope()
     try:
         se.ParseFromString(msg.payload)
@@ -18,7 +20,7 @@ def on_message(client, userdata, msg):
         return
     
     if mp.HasField("encrypted") and not mp.HasField("decoded"):
-        decoded_data = decrypt_packet(mp, key)
+        decoded_data = decrypt_packet(mp, config.channel.key)
         mp.decoded.CopyFrom(decoded_data)
 
     print ("")
