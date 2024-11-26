@@ -15,6 +15,18 @@ if os.path.exists(config_path):
 else:
     raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
+# def load_config_file(config_file_path='config.json'):
+#     """Load configuration dynamically from a given file path."""
+#     if not os.path.exists(config_file_path):
+#         raise FileNotFoundError(f"Configuration file not found: {config_file_path}")
+    
+#     with open(config_file_path, 'r') as file:
+#         return json.load(file)
+
+# # Default configuration loading
+# config = load_config_file()
+
+
 # Extract MQTT settings
 mqtt_broker = config["mqtt"]["broker"]
 mqtt_port = config["mqtt"]["port"]

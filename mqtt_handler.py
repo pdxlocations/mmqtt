@@ -37,9 +37,9 @@ def connect_mqtt(mqtt_broker, mqtt_port, mqtt_username, mqtt_password):
         except Exception as e:
             print (e)
 
-    client.loop_start()
-    time.sleep(1)
-    return client
+        client.loop_start()
+        time.sleep(1)
+        return client
 
 def on_disconnect(client, userdata, flags, reason_code, properties):
     global auto_reconnect
@@ -49,7 +49,7 @@ def on_disconnect(client, userdata, flags, reason_code, properties):
         if auto_reconnect == True:
             print("attempting to reconnect in " + str(auto_reconnect_delay) + " second(s)")
             time.sleep(auto_reconnect_delay)
-            connect_mqtt(client, mqtt_broker, mqtt_port, mqtt_username, mqtt_password)
+            connect_mqtt(mqtt_broker, mqtt_port, mqtt_username, mqtt_password)
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if client.is_connected():
