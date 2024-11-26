@@ -28,14 +28,14 @@ def generate_hash(name: str, key: str) -> int:
     result: int = h_name ^ h_key
     return result
 
-def get_message_id(message_id):
+def get_message_id(message_id) -> int:
     if message_id == 4294967295:
         message_id = 0
     message_id += 1
     return message_id
 
 
-def validate_lat_lon_alt(parser, args):
+def validate_lat_lon_alt(parser, args) -> None:
     # Check if --alt is provided
     if args.alt:
         if not args.lat or not args.lon:

@@ -6,13 +6,15 @@ from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2, telemetry_pb2
 from utils import generate_hash, get_message_id
 from encryption import encrypt_packet
 from load_config import ConfigLoader
+from mqtt_handler import get_mqtt_client
 
 message_id = random.getrandbits(32)
 
-def publish_message(client, payload_function, portnum, **kwargs):
+def publish_message(payload_function, portnum, **kwargs):
     """Send a message of any type."""
     try:
         config = ConfigLoader.get_config()
+        client = get_mqtt_client()
         payload = payload_function(portnum=portnum, **kwargs)
         topic = f"{config.mqtt.root_topic}{config.channel.preset}/{config.node.id}"
         client.publish(topic, payload)
@@ -58,15 +60,15 @@ def generate_mesh_packet(encoded_message):
 
 ########## Specific Message Handlers ##########
 
-def send_text_message(client, message):
+def send_text_message(message):
     """Send a text message."""
     def create_text_payload(portnum, message_text):
         data = message_text.encode("utf-8")
         return create_payload(data, portnum)
     
-    publish_message(client, create_text_payload, portnums_pb2.TEXT_MESSAGE_APP, message_text=message)
+    publish_message(create_text_payload, portnums_pb2.TEXT_MESSAGE_APP, message_text=message)
 
-def send_nodeinfo(client, long_name, short_name, hw_model):
+def send_nodeinfo(long_name, short_name, hw_model):
     """Send node information."""
     def create_nodeinfo_payload(portnum, node_long_name, node_short_name, node_hw_model):
         config = ConfigLoader.get_config()
@@ -78,10 +80,10 @@ def send_nodeinfo(client, long_name, short_name, hw_model):
         )
         return create_payload(data, portnum)
     
-    publish_message(client, create_nodeinfo_payload, portnums_pb2.NODEINFO_APP, 
+    publish_message(create_nodeinfo_payload, portnums_pb2.NODEINFO_APP, 
                  node_long_name=long_name, node_short_name=short_name, node_hw_model=hw_model)
 
-def send_position(client, lat, lon, alt, pre):
+def send_position(lat, lon, alt, pre):
     """Send position details."""
     def create_position_payload(portnum, lat, lon, alt, pre):
         pos_time = int(time.time())
@@ -100,9 +102,9 @@ def send_position(client, lat, lon, alt, pre):
         )
         return create_payload(data, portnum)
 
-    publish_message(client, create_position_payload, portnums_pb2.POSITION_APP, lat=lat, lon=lon, alt=alt, pre=pre)
+    publish_message(create_position_payload, portnums_pb2.POSITION_APP, lat=lat, lon=lon, alt=alt, pre=pre)
 
-def send_device_telemetry(client, battery_level, voltage, chutil, airtxutil, uptime):
+def send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime):
     """Send telemetry data."""
     def create_telemetry_payload(portnum, battery_level, voltage, chutil, airtxutil, uptime):
         data = telemetry_pb2.Telemetry(
@@ -117,5 +119,5 @@ def send_device_telemetry(client, battery_level, voltage, chutil, airtxutil, upt
         )
         return create_payload(data, portnum)
 
-    publish_message(client, create_telemetry_payload, portnums_pb2.TELEMETRY_APP, 
+    publish_message(create_telemetry_payload, portnums_pb2.TELEMETRY_APP, 
                  battery_level=battery_level, voltage=voltage, chutil=chutil, airtxutil=airtxutil, uptime=uptime)

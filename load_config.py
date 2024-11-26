@@ -20,8 +20,9 @@ class ConfigLoader:
         with open(config_path, 'r') as config_file:
             conf = json.load(config_file)
 
-        # Update specific keys
+        # Expand default key
         conf["channel"]["key"] = "1PG7OiApB1nwvP+rz05pAQ==" if conf["channel"]["key"] == "AQ==" else conf["channel"]["key"]
+        # Create keys not in config
         conf["node"]["number"] = int(conf["node"]["id"].replace("!", ""), 16)
         conf["destination_id"] = BROADCAST_NUM
 
