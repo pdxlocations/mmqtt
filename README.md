@@ -2,7 +2,7 @@ This project is useful for testing Meshtastic networks connected to an MQTT serv
 
 ## Available functions:
 
-```bash
+```
 send_nodeinfo(short_name, long_name, hw_model)
 send_position(lat, lon, alt, precision)
 send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
@@ -11,7 +11,7 @@ send_text_message("text")
 
 ## Available arguments:
 
-```bash
+```
   -h, --help             show this help message and exit
   --config CONFIG        Path to the config file
   --message MESSAGE      The message to send
@@ -24,18 +24,18 @@ send_text_message("text")
 ## Examples:
 
 To publish a message to the broker using settings defined in config.json:
-```bash
+```
 python3 mqttc.py --message "I need an Alpinist"
 ```
 
 To publish a message to the broker using settings defined in my-config.json:
-```bash
+```
 python3 mqttc.py --congig "my-config.json" --message "I need an Alpinist"
 ```
 
 
 ## Installation:
-```bash
+```
 git clone https://github.com/pdxlocations/MQTTc-for-Meshtastic.git
 cd MQTTc-for-Meshtastic
 python3 -m venv .venv
@@ -44,7 +44,7 @@ pip install -r requirements.txt
 ```
 
 Rename config-example.json and edit configuration:
-```bash
+```
 sudo mv config-example.json config.json
 sudo nano config.json
 ```
