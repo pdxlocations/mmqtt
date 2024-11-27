@@ -36,10 +36,9 @@ def generate_mesh_packet(encoded_message):
     global message_id
     message_id = get_message_id(message_id)
     
-    node_number = int(config.node.id.replace("!", ""), 16)
     mesh_packet = mesh_pb2.MeshPacket()
     mesh_packet.id = message_id
-    setattr(mesh_packet, "from", node_number)
+    setattr(mesh_packet, "from", config.node.number)
     mesh_packet.to = config.destination_id
     mesh_packet.want_ack = False
     mesh_packet.channel = generate_hash(config.channel.preset, config.channel.key)
