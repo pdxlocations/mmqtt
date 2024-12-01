@@ -92,15 +92,21 @@ def on_message(client, userdata, msg):
         except Exception as e:
             print(f"*** TELEMETRY_APP: {str(e)}")
 
+    else:
+        # Attempt to process the decrypted or encrypted payload
+        portNumInt = mp.decoded.portnum if mp.HasField("decoded") else None
+        handler = protocols.get(portNumInt) if portNumInt else None
 
-    elif handler.protobufFactory is not None:
-            portNumInt = mp.decoded.portnum
-            handler = protocols.get(portNumInt)
+        pb = None
+        if handler is not None and handler.protobufFactory is not None:
             pb = handler.protobufFactory()
             pb.ParseFromString(mp.decoded.payload)
-            print("")
-            print("Mesh Packet:")
-            print(pb)
+
+        if pb:
+            # Clean and update the payload
+            pb_str = str(pb).replace('\n', ' ').replace('\r', ' ').strip()
+            mp.decoded.payload = pb_str.encode("utf-8")
+        print(mp)
 
         # rssi = getattr(mp, "rx_rssi")
 

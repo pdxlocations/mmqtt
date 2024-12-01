@@ -1,5 +1,6 @@
 from meshtastic.protobuf import portnums_pb2
 import base64
+import random
 
 def get_portnum_name(portnum) -> str:
     """For Logging: Retrieve the name of the port number from the protobuf enum."""
@@ -28,10 +29,11 @@ def generate_hash(name: str, key: str) -> int:
     result: int = h_name ^ h_key
     return result
 
-def get_message_id(message_id) -> int:
-    if message_id == 4294967295:
-        message_id = 0
-    message_id += 1
+def get_message_id(rolling_message_id: int, max_message_id: int = 4294967295) -> int:
+    """Increment the message ID with sequential wrapping and add a random upper bit component to prevent predictability."""
+    rolling_message_id = (rolling_message_id + 1) % (max_message_id & 0x3FF + 1)
+    random_bits = random.randint(0, (1 << 22) - 1) << 10
+    message_id = rolling_message_id | random_bits
     return message_id
 
 
