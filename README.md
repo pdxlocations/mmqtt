@@ -30,7 +30,7 @@ python3 mqttc.py --message "I need an Alpinist"
 
 To publish a message to the broker using settings defined in my-config.json:
 ```
-python3 mqttc.py --congig "my-config.json" --message "I need an Alpinist"
+python3 mqttc.py --config "my-config.json" --message "I need an Alpinist"
 ```
 
 
