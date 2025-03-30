@@ -1,0 +1,13 @@
+{
+    "version": "1.0.1",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "module": "mmqtt.main",
+            "args": []
+        }
+    ]
+}
