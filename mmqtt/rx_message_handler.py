@@ -1,8 +1,8 @@
 from meshtastic import mqtt_pb2, portnums_pb2, mesh_pb2, telemetry_pb2
 from meshtastic import protocols
-from encryption import decrypt_packet
+from mmqtt.encryption import decrypt_packet
 # from load_config import config
-from load_config import ConfigLoader
+from mmqtt.load_config import ConfigLoader
 
 def on_message(client, userdata, msg):
     config = ConfigLoader.get_config()
