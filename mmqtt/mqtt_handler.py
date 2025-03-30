@@ -1,8 +1,8 @@
 import time
 import ssl
 import paho.mqtt.client as mqtt
-from rx_message_handler import on_message
-from load_config import ConfigLoader
+from mmqtt.rx_message_handler import on_message
+from mmqtt.load_config import ConfigLoader
 
 _client_instance = None
 
