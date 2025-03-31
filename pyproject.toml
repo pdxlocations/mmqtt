@@ -9,8 +9,8 @@ license = "GPL-3.0-only"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "meshtastic (>=2.6.0,<3.0.0)"
-    "paho-mqtt (>=2.1.0,<3.0.0)"
+    "meshtastic (>=2.6.0,<3.0.0)",
+    "paho-mqtt (>=2.1.0,<3.0.0)",
     "cryptography (>=43.0.3,<44.0.0)"
 ]
 
@@ -20,4 +20,4 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-mcontact = "mcontact.main:start"
+mmqtt = "mmqtt.main:start"

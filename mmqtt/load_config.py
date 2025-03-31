@@ -14,8 +14,14 @@ class ConfigLoader:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(script_dir, filename)
 
+        # Fallback to config-example.json if config.json is missing
         if not os.path.exists(config_path):
-            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+            fallback_path = os.path.join(script_dir, "config-example.json")
+            if os.path.exists(fallback_path):
+                print(f"{filename} not found. Falling back to config-example.json.")
+                config_path = fallback_path
+            else:
+                raise FileNotFoundError(f"Neither {filename} nor config-example.json found.")
 
         with open(config_path, 'r') as config_file:
             conf = json.load(config_file)
