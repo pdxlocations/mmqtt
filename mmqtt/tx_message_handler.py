@@ -3,10 +3,10 @@ import re
 import random
 
 from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2, telemetry_pb2
-from utils import generate_hash, get_message_id
-from encryption import encrypt_packet
-from load_config import ConfigLoader
-from mqtt_handler import get_mqtt_client
+from mmqtt.utils import generate_hash, get_message_id
+from mmqtt.encryption import encrypt_packet
+from mmqtt.load_config import ConfigLoader
+from mmqtt.mqtt_handler import get_mqtt_client
 
 message_id = random.getrandbits(32)
 
