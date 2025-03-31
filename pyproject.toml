@@ -7,7 +7,7 @@ authors = [
 ]
 license = "GPL-3.0-only"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.14"
 dependencies = [
     "meshtastic (>=2.6.0,<3.0.0)",
     "paho-mqtt (>=2.1.0,<3.0.0)",
