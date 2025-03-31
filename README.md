@@ -1,5 +1,26 @@
 This project is useful for testing Meshtastic networks connected to an MQTT server. Functions can be called in mqttc.py or by using arguments in the command line.
 
+# Installation
+
+## with pipx
+```bash
+pip install mmqtt
+```
+
+```bash
+pip install mmqtt
+```
+
+## For development
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install poetry
+poetry build
+pip install dist/mmqtt*.whl
+```
+
+
 ## Available functions:
 
 ```
