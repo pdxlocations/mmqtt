@@ -1,7 +1,6 @@
 from meshtastic import mqtt_pb2, portnums_pb2, mesh_pb2, telemetry_pb2
 from meshtastic import protocols
 from mmqtt.encryption import decrypt_packet
-# from load_config import config
 from mmqtt.load_config import ConfigLoader
 
 def on_message(client, userdata, msg):
@@ -25,7 +24,11 @@ def on_message(client, userdata, msg):
     
     if mp.HasField("encrypted") and not mp.HasField("decoded"):
         decoded_data = decrypt_packet(mp, config.channel.key)
-        mp.decoded.CopyFrom(decoded_data)
+        if decoded_data is not None:
+            mp.decoded.CopyFrom(decoded_data)
+        else:
+            print("*** Failed to decrypt message — decoded_data is None")
+            return
 
     print ("")
     print ("Message Packet:")

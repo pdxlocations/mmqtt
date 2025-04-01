@@ -22,6 +22,7 @@ def get_args():
     parser.add_argument('--alt', type=float, help='Altitude')
     parser.add_argument('--precision', type=int, help='Position Precision')
     parser.add_argument('--position', action='store_true', help='Send position from config unless overridden by --lat/lon/alt')
+    parser.add_argument('--listen', action='store_true', help='Enable listening for incoming MQTT messages')
 
     args = parser.parse_args()
     return parser, args
@@ -80,5 +81,21 @@ def handle_args():
             f"  Uptime:               {telemetry.uptime}s"
         )
         time.sleep(3)
+
+
+    if args.listen:
+        from mmqtt.mqtt_handler import get_mqtt_client
+        from mmqtt.rx_message_handler import on_message
+
+        # Load config and override mode.listen from CLI
+        config = ConfigLoader.get_config()
+        config.mode.listen = True
+
+        print("Starting MQTT listener (press Ctrl+C to stop)...")
+
+        # Start the MQTT client and set up the message handler
+        client = get_mqtt_client()
+        client.on_message = on_message
+        client.loop_start()
 
     return args

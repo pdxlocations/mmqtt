@@ -45,6 +45,7 @@ mmqtt.send_text_message("text")
   --position             Send position from config unless overridden by --lat, --lon, or --alt
   --nodeinfo             Send NodeInfo from my config
   --telemetry            Send telemetry from my config
+  --listen               Enable listening for incoming MQTT messages
 ```
 
 ## Examples:
