@@ -8,12 +8,20 @@ from mmqtt.encryption import encrypt_packet
 from mmqtt.load_config import ConfigLoader
 from mmqtt.mqtt_handler import get_mqtt_client
 
+_config = None
+
+def _get_config():
+    global _config
+    if _config is None:
+        _config = ConfigLoader.get_config()
+    return _config
+
 message_id = random.getrandbits(32)
 
 def publish_message(payload_function, portnum, **kwargs):
     """Send a message of any type."""
     try:
-        config = ConfigLoader.get_config()
+        config = _get_config()
         client = get_mqtt_client()
         payload = payload_function(portnum=portnum, **kwargs)
         topic = f"{config.mqtt.root_topic}{config.channel.preset}/{config.nodeinfo.id}"
@@ -32,7 +40,7 @@ def create_payload(data, portnum, want_response=False, bitfield=1):
 
 def generate_mesh_packet(encoded_message):
     """Generate the final mesh packet."""
-    config = ConfigLoader.get_config()
+    config = _get_config()
     global message_id
     message_id = get_message_id(message_id)
     
@@ -70,7 +78,7 @@ def send_text_message(message):
 def send_nodeinfo(long_name, short_name, hw_model):
     """Send node information."""
     def create_nodeinfo_payload(portnum, node_long_name, node_short_name, node_hw_model):
-        config = ConfigLoader.get_config()
+        config = _get_config()
         data = mesh_pb2.User(
             id=config.nodeinfo.id,
             long_name=node_long_name,

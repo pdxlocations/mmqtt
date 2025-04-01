@@ -45,9 +45,9 @@ class ConfigLoader:
         return ConfigLoader._config
 
     @staticmethod
-    def get_config():
+    def get_config(path="config.json"):
         if ConfigLoader._config is None:
-            raise ValueError("Config has not been loaded yet.")
+            ConfigLoader.load_config_file(path)
         return ConfigLoader._config
 
 

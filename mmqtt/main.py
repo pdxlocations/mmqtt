@@ -11,7 +11,7 @@ from mmqtt.argument_parser import handle_args, get_args
 
 stay_connected = False
 
-def start():
+def main():
     _, args = get_args()
     config_file = args.config
     config = ConfigLoader.load_config_file(config_file)
@@ -41,4 +41,4 @@ def start():
             time.sleep(1)
 
 if __name__ == "__main__":
-    start()
+    main()
