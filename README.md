@@ -27,7 +27,7 @@ mmqtt
 ```
 import mmqtt
 mmqtt.send_nodeinfo(short_name, long_name, hw_model)
-smmqtt.end_position(lat, lon, alt, precision)
+mmqtt.send_position(lat, lon, alt, precision)
 mmqtt.send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
 mmqtt.send_text_message("text")
 ```
