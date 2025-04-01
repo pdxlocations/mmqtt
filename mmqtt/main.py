@@ -16,8 +16,9 @@ def start():
     config_file = args.config
     config = ConfigLoader.load_config_file(config_file)
     client = get_mqtt_client()
+    handle_args() 
 
-    if handle_args() == None:
+    # if handle_args() == None:
 
         # send_nodeinfo(config.node.short_name, config.node.long_name, config.node.hw_model)
         # time.sleep(3)
@@ -28,12 +29,12 @@ def start():
         # send_device_telemetry(battery_level=99, voltage=4.0, chutil=3, airtxutil=1, uptime=420)
         # time.sleep(3)
 
-        send_text_message("Happy New Year!")
-        time.sleep(3)
+        # send_text_message("Happy New Year!")
+        # time.sleep(3)
 
-    client.disconnect()
+    # client.disconnect()
     
-    if not stay_connected:
+    if config.mode.listen == False:
         client.disconnect()
     else:
         while True:

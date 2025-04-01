@@ -6,6 +6,10 @@ from mmqtt.load_config import ConfigLoader
 
 def on_message(client, userdata, msg):
     config = ConfigLoader.get_config()
+
+    if not config.mode.listen:
+        return  # Do not process or print the message
+
     se = mqtt_pb2.ServiceEnvelope()
     try:
         se.ParseFromString(msg.payload)

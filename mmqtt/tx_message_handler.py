@@ -16,7 +16,7 @@ def publish_message(payload_function, portnum, **kwargs):
         config = ConfigLoader.get_config()
         client = get_mqtt_client()
         payload = payload_function(portnum=portnum, **kwargs)
-        topic = f"{config.mqtt.root_topic}{config.channel.preset}/{config.node.id}"
+        topic = f"{config.mqtt.root_topic}{config.channel.preset}/{config.nodeinfo.id}"
         client.publish(topic, payload)
     except Exception as e:
         print(f"Error while sending message: {e}")
@@ -38,8 +38,8 @@ def generate_mesh_packet(encoded_message):
     
     mesh_packet = mesh_pb2.MeshPacket()
     mesh_packet.id = message_id
-    setattr(mesh_packet, "from", config.node.number)
-    mesh_packet.to = config.destination_id
+    setattr(mesh_packet, "from", config.nodeinfo.number)
+    mesh_packet.to = int(config.message.destination_id)
     mesh_packet.want_ack = False
     mesh_packet.channel = generate_hash(config.channel.preset, config.channel.key)
     mesh_packet.hop_limit = 3
@@ -53,7 +53,7 @@ def generate_mesh_packet(encoded_message):
     service_envelope = mqtt_pb2.ServiceEnvelope()
     service_envelope.packet.CopyFrom(mesh_packet)
     service_envelope.channel_id = config.channel.preset
-    service_envelope.gateway_id = config.node.id
+    service_envelope.gateway_id = config.nodeinfo.id
 
     return service_envelope.SerializeToString()
 
@@ -72,7 +72,7 @@ def send_nodeinfo(long_name, short_name, hw_model):
     def create_nodeinfo_payload(portnum, node_long_name, node_short_name, node_hw_model):
         config = ConfigLoader.get_config()
         data = mesh_pb2.User(
-            id=config.node.id,
+            id=config.nodeinfo.id,
             long_name=node_long_name,
             short_name=node_short_name,
             hw_model=node_hw_model

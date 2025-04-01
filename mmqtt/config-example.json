@@ -10,15 +10,32 @@
       "preset": "LongFast",
       "key": "AQ=="
     },
-    "node": {
+    "nodeinfo": {
       "id": "!deadbeef",
-      "short_name": "MC",
-      "long_name": "MQTTc",
+      "short_name": "q",
+      "long_name": "mmqtt",
+      "hw_model": 255
+    },
+    "position": {
       "lat": 45.43139,
       "lon": -122.37354,
       "alt": 9,
       "location_source": "LOC_MANUAL",
       "precision": 16,
       "hw_model": 255
+    },
+    "telemetry": {
+      "battery_level": 99,
+      "voltage": 4.0,
+      "chutil": 3,
+      "airtxutil": 1,
+      "uptime": 420
+    },
+    "message": {
+      "text": "Happy New Year",
+      "destination_id": "4294967295"
+    },
+    "mode": {
+      "listen": "False"
     }
   }

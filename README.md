@@ -2,11 +2,6 @@ This project is useful for testing Meshtastic networks connected to an MQTT serv
 
 # Installation
 
-## with pipx
-```bash
-pip install mmqtt
-```
-
 ```bash
 pip install mmqtt
 ```
@@ -18,6 +13,11 @@ source .venv/bin/activate
 pip install poetry
 poetry build
 pip install dist/mmqtt*.whl
+```
+
+# To run:
+```bash
+mmqtt
 ```
 
 
