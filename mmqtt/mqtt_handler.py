@@ -12,7 +12,7 @@ auto_reconnect_delay = 1
 def set_topic():
     config = ConfigLoader.get_config()
     print(f"set_topic: {config.mqtt.root_topic}{config.channel.preset}/")
-    node_name = '!' + hex(config.node.number)[2:]
+    node_name = '!' + hex(config.nodeinfo.number)[2:]
     subscribe_topic = config.mqtt.root_topic + config.channel.preset + "/#"
     publish_topic = config.mqtt.root_topic + config.channel.preset + "/" + node_name
     return subscribe_topic, publish_topic

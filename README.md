@@ -1,12 +1,35 @@
-This project is useful for testing Meshtastic networks connected to an MQTT server. Functions can be called in mqttc.py or by using arguments in the command line.
+This project is useful for testing Meshtastic networks connected to an MQTT server. Functions can be called via the `mmqtt` command or imported and used programmatically.
+
+# Installation
+
+```bash
+pip install mmqtt
+```
+
+## For development
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install poetry
+poetry build
+pip install dist/mmqtt*.whl
+```
+
+# To run:
+
+```bash
+mmqtt
+```
 
 ## Available functions:
 
 ```
-send_nodeinfo(short_name, long_name, hw_model)
-send_position(lat, lon, alt, precision)
-send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
-send_text_message("text")
+import mmqtt
+mmqtt.send_nodeinfo(short_name, long_name, hw_model)
+smmqtt.end_position(lat, lon, alt, precision)
+mmqtt.send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
+mmqtt.send_text_message("text")
 ```
 
 ## Available arguments:
@@ -19,32 +42,66 @@ send_text_message("text")
   --lon LON              Longitude coordinate
   --alt ALT              Altitude
   --precision PRECISION  Position Precision
+  --position             Send position from config unless overridden by --lat, --lon, or --alt
+  --nodeinfo             Send NodeInfo from my config
+  --telemetry            Send telemetry from my config
+  --listen               Enable listening for incoming MQTT messages
 ```
 
 ## Examples:
 
-To publish a message to the broker using settings defined in config.json:
+To publish a message to the broker using settings defined in `config-example.json`:
 ```
-python3 mqttc.py --message "I need an Alpinist"
-```
-
-To publish a message to the broker using settings defined in my-config.json:
-```
-python3 mqttc.py --config "my-config.json" --message "I need an Alpinist"
+mmqtt --message "I need an Alpinist"
 ```
 
-
-## Installation:
+To publish a message to the broker using settings defined in `my-config.json`:
 ```
-git clone https://github.com/pdxlocations/MQTTc-for-Meshtastic.git
-cd MQTTc-for-Meshtastic
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+mmqtt --config "my-config.json" --message "I need an Alpinist"
 ```
 
-Rename config-example.json and edit configuration:
-```
-sudo mv config-example.json config.json
-sudo nano config.json
-```
+## Example config.yaml:
+
+```yaml
+{
+  "mqtt": {
+    "broker": "mqtt.meshtastic.org",
+    "port": 1883,
+    "user": "meshdev",
+    "password": "large4cats",
+    "root_topic": "msh/US/2/e/"
+  },
+  "channel": {
+    "preset": "LongFast",
+    "key": "AQ=="
+  },
+  "nodeinfo": {
+    "id": "!deadbeef",
+    "short_name": "q",
+    "long_name": "mmqtt",
+    "hw_model": 255
+  },
+  "position": {
+    "lat": 45.43139,
+    "lon": -122.37354,
+    "alt": 9,
+    "location_source": "LOC_MANUAL",
+    "precision": 16,
+    "hw_model": 255
+  },
+  "telemetry": {
+    "battery_level": 99,
+    "voltage": 4.0,
+    "chutil": 3,
+    "airtxutil": 1,
+    "uptime": 420
+  },
+  "message": {
+    "text": "Happy New Year",
+    "destination_id": "4294967295"
+  },
+  "mode": {
+    "listen": "False"
+  }
+}
+  ```
