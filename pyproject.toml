@@ -1,6 +1,6 @@
 [project]
 name = "mmqtt"
-version = "1.0.9"
+version = "1.0.10"
 description = "This library may be useful for testing Meshtastic networks connected to an MQTT server."
 authors = [
     {name = "Ben Lipsey",email = "ben@pdxlocations.com"}
@@ -14,6 +14,9 @@ dependencies = [
     "cryptography (>=43.0.3,<44.0.0)"
 ]
 
+[project.urls]
+Homepage = "https://github.com/pdxlocations/mmqtt"
+Issues = "https://github.com/pdxlocations/mmqtt/issues"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
