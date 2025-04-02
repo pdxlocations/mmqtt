@@ -21,8 +21,7 @@
     "lon": -122.37354,
     "alt": 9,
     "location_source": "LOC_MANUAL",
-    "precision": 16,
-    "hw_model": 255
+    "precision": 16
   },
   "telemetry": {
     "battery_level": 99,

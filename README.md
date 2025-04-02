@@ -60,7 +60,7 @@ To publish a message to the broker using settings defined in `my-config.json`:
 mmqtt --config "my-config.json" --message "I need an Alpinist"
 ```
 
-## Example config.yaml:
+## Example config.json:
 
 ```yaml
 {
@@ -86,8 +86,7 @@ mmqtt --config "my-config.json" --message "I need an Alpinist"
     "lon": -122.37354,
     "alt": 9,
     "location_source": "LOC_MANUAL",
-    "precision": 16,
-    "hw_model": 255
+    "precision": 16
   },
   "telemetry": {
     "battery_level": 99,
