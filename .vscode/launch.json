@@ -7,7 +7,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "module": "mmqtt.main",
-            "args": [""]
+            "args": []
         }
     ]
 }

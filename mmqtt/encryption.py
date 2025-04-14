@@ -3,11 +3,19 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from meshtastic.protobuf import mesh_pb2
 
-
 from mmqtt.utils import generate_hash
 
-def decrypt_packet(mp, key):
-    """Decrypt the encrypted message payload and return the decoded data."""
+def decrypt_packet(mp: mesh_pb2.MeshPacket, key: str) -> mesh_pb2.Data | None:
+    """
+    Decrypt the encrypted message payload and return the decoded Data object.
+
+    Args:
+        mp: The MeshPacket with encrypted payload.
+        key: Base64-encoded encryption key.
+
+    Returns:
+        A decoded mesh_pb2.Data object or None on failure.
+    """
     try:
         key_bytes = base64.b64decode(key.encode('ascii'))
 
@@ -30,9 +38,19 @@ def decrypt_packet(mp, key):
         print(f"Failed to decrypt: {e}")
         return None
 
-def encrypt_packet(channel, key, mp, encoded_message):
-    """Encrypt a message."""
+def encrypt_packet(channel: str, key: str, mp: mesh_pb2.MeshPacket, encoded_message: mesh_pb2.Data) -> bytes | None:
+    """
+    Encrypt an encoded message and return the ciphertext.
 
+    Args:
+        channel: Channel name or ID.
+        key: Base64-encoded encryption key.
+        mp: MeshPacket used for ID and from fields (nonce).
+        encoded_message: Data object to encrypt.
+
+    Returns:
+        The encrypted message bytes or None on failure.
+    """
     try:
         mp.channel = generate_hash(channel, key)
         key_bytes = base64.b64decode(key.encode('ascii'))

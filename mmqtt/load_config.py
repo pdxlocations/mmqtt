@@ -1,20 +1,21 @@
 import os
 import json
+from pathlib import Path
 from types import SimpleNamespace
-from meshtastic import BROADCAST_NUM
+from typing import Any, Union
 
 class ConfigLoader:
-    _config = None
+    _config: Union[SimpleNamespace, None] = None
 
     @staticmethod
-    def load_config_file(filename):
+    def load_config_file(filename: str) -> SimpleNamespace:
         if ConfigLoader._config is not None:
-            return ConfigLoader._config  # Return already loaded config
+            return ConfigLoader._config
 
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(script_dir, filename)
+        script_dir = Path(__file__).resolve().parent
+        config_path = script_dir / filename
 
-        # Fallback to config-example.json if config.json is missing
+        # Fallback logic
         if not os.path.exists(config_path):
             fallback_path = os.path.join(script_dir, "config-example.json")
             if os.path.exists(fallback_path):
@@ -23,33 +24,42 @@ class ConfigLoader:
             else:
                 raise FileNotFoundError(f"Neither {filename} nor config-example.json found.")
 
-        with open(config_path, 'r') as config_file:
-            conf = json.load(config_file)
+        with open(config_path, 'r', encoding='utf-8') as f:
+            conf: dict[str, Any] = json.load(f)
 
-        # Expand default key
-        conf["channel"]["key"] = "1PG7OiApB1nwvP+rz05pAQ==" if conf["channel"]["key"] == "AQ==" else conf["channel"]["key"]
+        # Expand channel key
+        if conf.get("channel", {}).get("key") == "AQ==":
+            conf["channel"]["key"] = "1PG7OiApB1nwvP+rz05pAQ=="
 
-        # Create keys not in config
+        # Generate node number if not present
+        conf.setdefault("nodeinfo", {})
         conf["nodeinfo"]["number"] = int(conf["nodeinfo"]["id"].replace("!", ""), 16)
-        
-        # Convert "False"/"True" strings to bool
-        conf["mode"]["listen"] = conf["mode"]["listen"].lower() == "true"
 
-        # Convert to nested SimpleNamespace
-        def dict_to_namespace(data):
-            if isinstance(data, dict):
-                return SimpleNamespace(**{k: dict_to_namespace(v) for k, v in data.items()})
-            return data
-        
-        ConfigLoader._config = dict_to_namespace(conf)
+        # Normalize booleans
+        conf.setdefault("mode", {})
+        if isinstance(conf["mode"].get("listen"), str):
+            conf["mode"]["listen"] = conf["mode"]["listen"].lower() == "true"
+
+        ConfigLoader._config = ConfigLoader.dict_to_namespace(conf)
         return ConfigLoader._config
-
+    
     @staticmethod
-    def get_config(path="config.json"):
+    def dict_to_namespace(data: Any) -> Any:
+        if isinstance(data, dict):
+            return SimpleNamespace(**{k: ConfigLoader.dict_to_namespace(v) for k, v in data.items()})
+        return data
+    
+    @staticmethod
+    def get_config(path: str = "config.json") -> SimpleNamespace:
         if ConfigLoader._config is None:
             ConfigLoader.load_config_file(path)
         return ConfigLoader._config
 
+    @staticmethod
+    def save_config_file(path: str = "config.json") -> None:
+        if ConfigLoader._config:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(ConfigLoader._config, f, default=lambda o: o.__dict__, indent=4)
 
 if __name__ == "__main__":
     config = ConfigLoader.load_config_file('config.json')

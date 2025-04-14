@@ -25,11 +25,11 @@ mmqtt
 ## Available functions:
 
 ```
-import mmqtt
-mmqtt.send_nodeinfo(short_name, long_name, hw_model)
-mmqtt.send_position(lat, lon, alt, precision)
-mmqtt.send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
-mmqtt.send_text_message("text")
+from mmqtt import send_nodeinfo, send_position, send_device_telemetry, send_text_message
+send_nodeinfo(short_name, long_name, hw_model)
+send_position(lat, lon, alt, precision)
+send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
+send_text_message("text")
 ```
 
 ## Available arguments:
