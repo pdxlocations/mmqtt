@@ -19,13 +19,25 @@ def _get_config():
         _config = ConfigLoader.get_config()
     return _config
 
+def get_portnum_name(portnum: int) -> str:
+    for name, number in portnums_pb2.PortNum.items():
+        if number == portnum:
+            return name
+    return f"UNKNOWN_PORTNUM ({portnum})"
+
 def publish_message(payload_function: Callable, portnum: int, **kwargs) -> None:
-    """Send a message of any type."""
+    """Send a message of any type, with logging."""
     try:
         config = _get_config()
         client = get_mqtt_client()
         payload = payload_function(portnum=portnum, **kwargs)
         topic = f"{config.mqtt.root_topic}{config.channel.preset}/{config.nodeinfo.id}"
+
+        # Log the outgoing message summary
+        print(f"\n📤 Sending {get_portnum_name(portnum)} to topic '{topic}'")
+        for k, v in kwargs.items():
+            print(f"   {k}: {v}")
+
         client.publish(topic, payload)
     except Exception as e:
         print(f"Error while sending message: {e}")

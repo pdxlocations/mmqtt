@@ -36,7 +36,6 @@ def get_message_id(rolling_message_id: int, max_message_id: int = 4294967295) ->
     message_id = rolling_message_id | random_bits
     return message_id
 
-
 def validate_lat_lon_alt(parser, args) -> None:
     # Check if --alt is provided
     if args.alt:
@@ -48,4 +47,3 @@ def validate_lat_lon_alt(parser, args) -> None:
         # If one of lat lon or pre is provided, ensure lat and lon are provided
         if not (args.lat and args.lon):
             parser.error('If you specify --lat, --lon, or --pre, you must specify both --lat and --lon.')
-

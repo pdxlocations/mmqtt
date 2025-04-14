@@ -1,9 +1,13 @@
+from typing import Any
+from paho.mqtt.client import Client
+from paho.mqtt.client import MQTTMessage
+
 from meshtastic import mqtt_pb2, portnums_pb2, mesh_pb2, telemetry_pb2
 from meshtastic import protocols
 from mmqtt.encryption import decrypt_packet
 from mmqtt.load_config import ConfigLoader
 
-def on_message(client, userdata, msg):
+def on_message(client: Client, userdata: Any, msg: MQTTMessage) -> None:
     config = ConfigLoader.get_config()
 
     if not config.mode.listen:
