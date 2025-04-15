@@ -6,8 +6,8 @@
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "module": "mmqtt.main",
-            "args": []
+            "module": "mmqtt.__main__",
+            "args": ["--nodeinfo"]
         }
     ]
 }

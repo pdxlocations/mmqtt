@@ -1,5 +1,6 @@
 import argparse
 import time
+import sys
 from types import SimpleNamespace
 from typing import Tuple
 
@@ -28,6 +29,7 @@ def get_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     parser.add_argument('--precision', type=int, help='Position Precision')
     parser.add_argument('--position', action='store_true', help='Send position from config or overridden by --lat/lon/alt')
     parser.add_argument('--listen', action='store_true', help='Enable listening for incoming MQTT messages')
+    parser.add_argument('--use-args', action='store_true', help='Use values from config.json instead of client attributes')
 
     args = parser.parse_args()
     return parser, args
@@ -42,89 +44,69 @@ def handle_args() -> argparse.Namespace:
     parser, args = get_args()
     config: SimpleNamespace = ConfigLoader.get_config(args.config)
 
-    # Send NodeInfo
-    if args.nodeinfo:
-        node = config.nodeinfo
-        send_nodeinfo(node.short_name, node.long_name, node.hw_model)
+    arg_order = sys.argv[1:]
 
-        print(
-            "Sending NodeInfo:\n"
-            f"  Short Name: {node.short_name}\n"
-            f"  Long Name:  {node.long_name}\n"
-            f"  Hardware Model: {node.hw_model}"
-        )
-        time.sleep(3)
+    messages = args.message or []
 
-
-    # Collect all messages from CLI and file
-    messages = []
-
-    if args.message:
-        messages.extend(args.message)
-
-    if args.message_file:
-        try:
-            with open(args.message_file, 'r', encoding='utf-8') as f:
-                file_lines = [line.strip() for line in f if line.strip()]
-                messages.extend(file_lines)
-        except FileNotFoundError:
-            print(f"Message file '{args.message_file}' not found.")
-            return args
-
-    if messages:
-        for msg in messages:
-            send_text_message(msg)
-            print(f"Sending Message Packet to {config.message.destination_id}: {msg}")
+    for arg in arg_order:
+        if arg == "--nodeinfo" and args.nodeinfo:
+            node = config.nodeinfo
+            send_nodeinfo(node.id, node.short_name, node.long_name, use_args=True)
             time.sleep(3)
-        return args
+            
+        elif arg == "--message" and messages:
+            for msg in messages:
+                send_text_message(msg, use_args=True)
+                time.sleep(3)
+            messages = []  # prevent duplicate sending
 
-    # Send position
-    if args.position:
-        position = config.position
+        elif arg == "--message-file" and args.message_file:
+            try:
+                with open(args.message_file, 'r', encoding='utf-8') as f:
+                    file_lines = [line.strip() for line in f if line.strip()]
+                    for msg in file_lines:
+                        send_text_message(msg, use_args=True)
+                        time.sleep(3)
+            except FileNotFoundError:
+                print(f"Message file '{args.message_file}' not found.")
 
-        lat = args.lat if args.lat is not None else position.lat
-        lon = args.lon if args.lon is not None else position.lon
-        alt = args.alt if args.alt is not None else position.alt
-        precision = args.precision if args.precision is not None else position.precision
+        elif arg == "--position" and args.position:
+            position = config.position
+            lat = args.lat if args.lat is not None else position.lat
+            lon = args.lon if args.lon is not None else position.lon
+            alt = args.alt if args.alt is not None else position.alt
+            precision = args.precision if args.precision is not None else position.precision
+            validate_lat_lon_alt(parser, argparse.Namespace(lat=lat, lon=lon, alt=alt))
+            send_position(lat, lon, alt, precision, use_args=True)
+            time.sleep(3)
 
-        validate_lat_lon_alt(parser, argparse.Namespace(lat=lat, lon=lon, alt=alt))
-        send_position(lat, lon, alt, precision)
-
-        print(f"Sending Position Packet to {config.message.destination_id}")
-        time.sleep(3)
-        return args
-
-    # Send Telemetry
-    if args.telemetry:
-        telemetry = config.telemetry
-        send_device_telemetry(
-            battery_level=telemetry.battery_level,
-            voltage=telemetry.voltage,
-            chutil=telemetry.chutil,
-            airtxutil=telemetry.airtxutil,
-            uptime=telemetry.uptime
-        )
-
-        print(
-            "Sending Telemetry:\n"
-            f"  Battery Level:        {telemetry.battery_level}%\n"
-            f"  Voltage:              {telemetry.voltage}V\n"
-            f"  Channel Utilization:  {telemetry.chutil}%\n"
-            f"  Air Tx Utilization:   {telemetry.airtxutil}%\n"
-            f"  Uptime:               {telemetry.uptime}s"
-        )
-        time.sleep(3)
+        elif arg == "--telemetry" and args.telemetry:
+            telemetry = config.telemetry
+            send_device_telemetry(
+                battery_level=telemetry.battery_level,
+                voltage=telemetry.voltage,
+                chutil=telemetry.chutil,
+                airtxutil=telemetry.airtxutil,
+                uptime=telemetry.uptime,
+                use_args=True
+            )
+            time.sleep(3)
 
     # Listen Mode
     if args.listen:
-        from mmqtt.mqtt_handler import get_mqtt_client
-        from mmqtt.rx_message_handler import on_message
-
-        config.mode.listen = True
+        from mmqtt import client
+        client.enable_verbose(True)
+        config.listen_mode = True
+        
         print("Starting MQTT listener (press Ctrl+C to stop)...")
 
-        client = get_mqtt_client()
-        client.on_message = on_message
-        client.loop_start()
+        client.subscribe()
+
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("Exiting listener.")
+            client.disconnect()
 
     return args
