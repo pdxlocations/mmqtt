@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
-Powered by Meshtastic™ https://meshtastic.org/
+mmqtt - An MQTT library for Meshtastic by http://github.com/pdxlocations
+Powered by Meshtastic.org
+
+Meshtastic® is a registered trademark of Meshtastic LLC.
+Meshtastic software components are released under various licenses—see GitHub for details.
+No warranty is provided. Use at your own risk.
 """
 
 import time
@@ -8,30 +13,25 @@ from mmqtt.load_config import ConfigLoader
 from mmqtt.argument_parser import handle_args, get_args
 from mmqtt import configure, connect, disconnect, enable_verbose
 
-stay_connected = False
-
 def main() -> None:
     """Entrypoint for the mmqtt client. Parses args, loads config, and starts the client."""
     _, args = get_args()
-    config_file = args.config
-    config = ConfigLoader.load_config_file(config_file)
+    config = ConfigLoader.load_config_file(args.config)
     configure(config)
 
     if args.listen:
         enable_verbose(True)
 
     connect()
-    handle_args() 
-    
-    if not config.mode.listen:
-        disconnect()
-    else:
+    handle_args()
+
+    if config.mode.listen:
         try:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
-            disconnect()
             print("Disconnected cleanly on exit.")
+    disconnect()
             
 if __name__ == "__main__":
     main()

@@ -59,12 +59,12 @@ def publish_message(payload_function: Callable, portnum: int, **kwargs) -> None:
     except Exception as e:
         print(f"Error while sending message: {e}")
 
-def create_payload(data, portnum: int, want_response: bool = False, bitfield: int = 1, **kwargs) -> bytes:
+def create_payload(data, portnum: int, bitfield: int = 1, **kwargs) -> bytes:
     """Generalized function to create a payload."""
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnum
     encoded_message.payload = data.SerializeToString() if hasattr(data, "SerializeToString") else data
-    encoded_message.want_response = want_response
+    encoded_message.want_response = kwargs.get("want_response", False)
     encoded_message.bitfield = bitfield
     return generate_mesh_packet(encoded_message, **kwargs)
 
