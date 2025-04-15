@@ -4,6 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Union
 
+
 class ConfigLoader:
     _config: Union[SimpleNamespace, None] = None
 
@@ -22,9 +23,11 @@ class ConfigLoader:
                 print(f"{filename} not found. Falling back to config-example.json.")
                 config_path = fallback_path
             else:
-                raise FileNotFoundError(f"Neither {filename} nor config-example.json found.")
+                raise FileNotFoundError(
+                    f"Neither {filename} nor config-example.json found."
+                )
 
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             conf: dict[str, Any] = json.load(f)
 
         # Generate node number if not present
@@ -38,13 +41,15 @@ class ConfigLoader:
 
         ConfigLoader._config = ConfigLoader.dict_to_namespace(conf)
         return ConfigLoader._config
-    
+
     @staticmethod
     def dict_to_namespace(data: Any) -> Any:
         if isinstance(data, dict):
-            return SimpleNamespace(**{k: ConfigLoader.dict_to_namespace(v) for k, v in data.items()})
+            return SimpleNamespace(
+                **{k: ConfigLoader.dict_to_namespace(v) for k, v in data.items()}
+            )
         return data
-    
+
     @staticmethod
     def get_config(path: str = "config.json") -> SimpleNamespace:
         if ConfigLoader._config is None:
@@ -55,8 +60,11 @@ class ConfigLoader:
     def save_config_file(path: str = "config.json") -> None:
         if ConfigLoader._config:
             with open(path, "w", encoding="utf-8") as f:
-                json.dump(ConfigLoader._config, f, default=lambda o: o.__dict__, indent=4)
+                json.dump(
+                    ConfigLoader._config, f, default=lambda o: o.__dict__, indent=4
+                )
+
 
 if __name__ == "__main__":
-    config = ConfigLoader.load_config_file('config.json')
+    config = ConfigLoader.load_config_file("config.json")
     print(json.dumps(config, default=lambda o: o.__dict__, indent=4))

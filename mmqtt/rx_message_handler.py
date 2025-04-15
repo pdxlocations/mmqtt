@@ -5,6 +5,7 @@ from meshtastic import mqtt_pb2, portnums_pb2, mesh_pb2, telemetry_pb2, protocol
 from mmqtt.encryption import decrypt_packet
 from mmqtt.load_config import ConfigLoader
 
+
 def on_message(client: MQTTClient, userdata: Any, msg: MQTTMessage) -> None:
     """Handle incoming MQTT messages."""
 
@@ -14,7 +15,7 @@ def on_message(client: MQTTClient, userdata: Any, msg: MQTTMessage) -> None:
     try:
         se.ParseFromString(msg.payload)
 
-        print ("[RX] Service Envelope:")
+        print("[RX] Service Envelope:")
         for line in str(se).splitlines():
             print("     " + line)
 
@@ -22,7 +23,7 @@ def on_message(client: MQTTClient, userdata: Any, msg: MQTTMessage) -> None:
     except Exception as e:
         print(f"*** [RX] ServiceEnvelope: {str(e)}")
         return
-    
+
     if mp.HasField("encrypted") and not mp.HasField("decoded"):
         decoded_data = decrypt_packet(mp, config.channel.key)
         if decoded_data is not None:
@@ -31,7 +32,7 @@ def on_message(client: MQTTClient, userdata: Any, msg: MQTTMessage) -> None:
             print("*** [RX] Failed to decrypt message — decoded_data is None")
             return
     print()
-    print ("[RX] Message Packet:")
+    print("[RX] Message Packet:")
     for line in str(mp).splitlines():
         print("     " + line)
 
@@ -39,17 +40,17 @@ def on_message(client: MQTTClient, userdata: Any, msg: MQTTMessage) -> None:
         print()
         try:
             from_str = getattr(mp, "from")
-            from_id = '!' + hex(from_str)[2:]
+            from_id = "!" + hex(from_str)[2:]
             text_payload = mp.decoded.payload.decode("utf-8")
 
-            print ("[RX] Message Payload:")
+            print("[RX] Message Payload:")
             for line in str(mp.decoded).splitlines():
                 print("     " + line)
             # print(f"{from_id}: {text_payload}")
 
         except Exception as e:
             print(f"*** [RX] TEXT_MESSAGE_APP: {str(e)}")
-        
+
     elif mp.decoded.portnum == portnums_pb2.NODEINFO_APP:
         info = mesh_pb2.User()
         print()
@@ -62,7 +63,7 @@ def on_message(client: MQTTClient, userdata: Any, msg: MQTTMessage) -> None:
 
         except Exception as e:
             print(f"*** [RX] NODEINFO_APP: {str(e)}")
-        
+
     elif mp.decoded.portnum == portnums_pb2.POSITION_APP:
         pos = mesh_pb2.Position()
         print()
@@ -119,7 +120,7 @@ def on_message(client: MQTTClient, userdata: Any, msg: MQTTMessage) -> None:
 
         if pb:
             # Clean and update the payload
-            pb_str = str(pb).replace('', ' ').replace('\r', ' ').strip()
+            pb_str = str(pb).replace("", " ").replace("\r", " ").strip()
             mp.decoded.payload = pb_str.encode("utf-8")
         print("[RX] Raw Message:")
         for line in str(mp).splitlines():
