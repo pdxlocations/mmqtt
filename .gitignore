@@ -3,3 +3,4 @@ __pycache__/
 config.json
 dist/
 examples/announce.py
+.vscode/settings.json

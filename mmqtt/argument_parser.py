@@ -51,12 +51,12 @@ def handle_args() -> argparse.Namespace:
     for arg in arg_order:
         if arg == "--nodeinfo" and args.nodeinfo:
             node = config.nodeinfo
-            send_nodeinfo(node.id, node.long_name, node.short_name, use_args=True)
+            send_nodeinfo(node.id, node.long_name, node.short_name, use_config=True)
             time.sleep(3)
             
         elif arg == "--message" and messages:
             for msg in messages:
-                send_text_message(msg, use_args=True)
+                send_text_message(msg, use_config=True)
                 time.sleep(3)
             messages = []  # prevent duplicate sending
 
@@ -65,7 +65,7 @@ def handle_args() -> argparse.Namespace:
                 with open(args.message_file, 'r', encoding='utf-8') as f:
                     file_lines = [line.strip() for line in f if line.strip()]
                     for msg in file_lines:
-                        send_text_message(msg, use_args=True)
+                        send_text_message(msg, use_config=True)
                         time.sleep(3)
             except FileNotFoundError:
                 print(f"Message file '{args.message_file}' not found.")
@@ -77,7 +77,7 @@ def handle_args() -> argparse.Namespace:
             alt = args.alt if args.alt is not None else position.alt
             precision = args.precision if args.precision is not None else position.precision
             validate_lat_lon_alt(parser, argparse.Namespace(lat=lat, lon=lon, alt=alt))
-            send_position(lat, lon, alt, precision, use_args=True)
+            send_position(lat, lon, alt, precision, use_config=True)
             time.sleep(3)
 
         elif arg == "--telemetry" and args.telemetry:
@@ -88,7 +88,7 @@ def handle_args() -> argparse.Namespace:
                 chutil=telemetry.chutil,
                 airtxutil=telemetry.airtxutil,
                 uptime=telemetry.uptime,
-                use_args=True
+                use_config=True
             )
             time.sleep(3)
 

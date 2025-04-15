@@ -29,6 +29,8 @@ from mmqtt import send_nodeinfo, send_position, send_device_telemetry, send_text
 send_nodeinfo(node_id, long_name, short_name)
 send_position(lattitude, longitude, altitude, location_precision)
 send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
+send_power_metrics(ch1_voltage, ch1_current, ch2_voltage, ch2_current, ch3_voltage, ch3_current)
+send_environment_metrics(temperature, relative_humidity, barometric_pressure, gas_resistance, voltage, current, iaq)
 send_text_message("text")
 ```
 Optional Arguments:

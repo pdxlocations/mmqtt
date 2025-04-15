@@ -2,5 +2,9 @@
     "cSpell.words": [
         "NODEINFO",
         "userdata"
-    ]
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+      }
 }

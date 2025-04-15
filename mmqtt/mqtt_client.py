@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 
+
 class Client:
     def __init__(self):
         self.server = None
@@ -11,7 +12,7 @@ class Client:
         self.key = None
         self.node_id = None
         self.destination_id = None
-        
+
         self.client = mqtt.Client()
         self.connected = False
         self.verbose = False
@@ -36,8 +37,9 @@ class Client:
 
         if self.verbose:
             from mmqtt.rx_message_handler import on_message
+
             self.client.on_message = on_message
-            
+
         self.client.connect_async(self.server, self.port, 60)
 
         print(f"[MQTT] Connecting to {self.server}:{self.port}")
@@ -45,9 +47,10 @@ class Client:
             print(f"[MQTT] Username: {self.user}")
         print(f"[MQTT] Topic: {self.root_topic}/2/e/{self.channel}")
         self.client.loop_start()
-        
+
         # Wait for connection confirmation (up to 10 seconds)
         import time
+
         max_wait = 10
         waited = 0
         while not self.client.is_connected() and waited < max_wait:
@@ -61,7 +64,7 @@ class Client:
         else:
             print("[MQTT] Connection failed after retrying for 10 seconds.")
         self.connected = True
-        
+
     def subscribe(self):
         if self.root_topic:
             self.client.subscribe(f"{self.root_topic}/2/e/{self.channel}")
