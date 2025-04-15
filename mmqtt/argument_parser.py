@@ -29,7 +29,7 @@ def get_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     parser.add_argument('--precision', type=int, help='Position Precision')
     parser.add_argument('--position', action='store_true', help='Send position from config or overridden by --lat/lon/alt')
     parser.add_argument('--listen', action='store_true', help='Enable listening for incoming MQTT messages')
-    parser.add_argument('--use-args', action='store_true', help='Use values from config.json instead of client attributes')
+    # parser.add_argument('--use-args', action='store_true', help='Use values from config.json instead of client attributes')
 
     args = parser.parse_args()
     return parser, args
@@ -51,7 +51,7 @@ def handle_args() -> argparse.Namespace:
     for arg in arg_order:
         if arg == "--nodeinfo" and args.nodeinfo:
             node = config.nodeinfo
-            send_nodeinfo(node.id, node.short_name, node.long_name, use_args=True)
+            send_nodeinfo(node.id, node.long_name, node.short_name, use_args=True)
             time.sleep(3)
             
         elif arg == "--message" and messages:

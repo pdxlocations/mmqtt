@@ -37,14 +37,15 @@ send_text_message("text")
 ```
   -h, --help             show this help message and exit
   --config CONFIG        Path to the config file
-  --message MESSAGE      The message to send
+  --message MESSAGE      Message to send. You can use this multiple times.
+  --message-file FILE    Path to a file containing messages, one per line
+  --nodeinfo             Send NodeInfo from my config
+  --telemetry            Send telemetry from my config
   --lat LAT              Latitude coordinate
   --lon LON              Longitude coordinate
   --alt ALT              Altitude
   --precision PRECISION  Position Precision
   --position             Send position from config unless overridden by --lat, --lon, or --alt
-  --nodeinfo             Send NodeInfo from my config
-  --telemetry            Send telemetry from my config
   --listen               Enable listening for incoming MQTT messages
 ```
 

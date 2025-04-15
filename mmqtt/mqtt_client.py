@@ -26,6 +26,7 @@ class Client:
         self.password = getattr(config.mqtt, "password", None)
         self.root_topic = getattr(config.mqtt, "root_topic", "")
         self.channel = getattr(config.channel, "preset", None)
+        self.key = getattr(config.channel, "key", None)
         self.node_id = getattr(config.nodeinfo, "id", None)
         self.destination_id = getattr(config.message, "destination_id", None)
 

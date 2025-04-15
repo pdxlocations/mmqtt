@@ -1,7 +1,6 @@
 import random
 import re
 import time
-import os
 from typing import Callable
 
 from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2, telemetry_pb2
@@ -69,16 +68,16 @@ def create_payload(data, portnum: int, want_response: bool = False, bitfield: in
     encoded_message.bitfield = bitfield
     return generate_mesh_packet(encoded_message, **kwargs)
 
-def generate_mesh_packet(encoded_message: mesh_pb2.Data, use_args: bool = False, **kwargs) -> bytes:
+def generate_mesh_packet(encoded_message: mesh_pb2.Data, **kwargs) -> bytes:
     """Generate the final mesh packet."""
-    
+
     use_args=kwargs.get("use_args", False)
     if use_args:
         config = _get_config()
         channel_id = config.channel.preset
         channel_key = config.channel.key
         gateway_id = config.nodeinfo.id
-        from_id = int(config.nodeinfo.number.replace("!", ""), 16)
+        from_id = int(config.nodeinfo.id.replace("!", ""), 16)
         destination = kwargs.get("to", config.message.destination_id)
     else:
         from mmqtt import client
