@@ -2,3 +2,4 @@ __pycache__/
 .venv/
 config.json
 dist/
+examples/announce.py

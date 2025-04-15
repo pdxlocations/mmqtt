@@ -27,10 +27,6 @@ class ConfigLoader:
         with open(config_path, 'r', encoding='utf-8') as f:
             conf: dict[str, Any] = json.load(f)
 
-        # Expand channel key
-        if conf.get("channel", {}).get("key") == "AQ==":
-            conf["channel"]["key"] = "1PG7OiApB1nwvP+rz05pAQ=="
-
         # Generate node number if not present
         conf.setdefault("nodeinfo", {})
         conf["nodeinfo"]["number"] = int(conf["nodeinfo"]["id"].replace("!", ""), 16)

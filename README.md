@@ -22,30 +22,44 @@ pip install dist/mmqtt*.whl
 mmqtt
 ```
 
-## Available functions:
+## Available functions (see examples for further information):
 
-```
+```bash
 from mmqtt import send_nodeinfo, send_position, send_device_telemetry, send_text_message
-send_nodeinfo(short_name, long_name, hw_model)
-send_position(lat, lon, alt, precision)
+send_nodeinfo(node_id, long_name, short_name)
+send_position(lattitude, longitude, altitude, location_precision)
 send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
 send_text_message("text")
 ```
+Optional Arguments:
+```bash
+to=INT
+hop_start=INT
+hop_limit=INT
+want_ack=BOOL
+want_response=BOOL
+```
+Example:
+```bash
+send_text_message("Happy New Year" to=12345678, hop_limit=5)
+```
+
 
 ## Available arguments:
 
 ```
   -h, --help             show this help message and exit
   --config CONFIG        Path to the config file
-  --message MESSAGE      The message to send
+  --message MESSAGE      Message to send. You can use this multiple times.
+  --message-file FILE    Path to a file containing messages, one per line
+  --nodeinfo             Send NodeInfo from my config
+  --telemetry            Send telemetry from my config
   --lat LAT              Latitude coordinate
   --lon LON              Longitude coordinate
   --alt ALT              Altitude
   --precision PRECISION  Position Precision
   --position             Send position from config unless overridden by --lat, --lon, or --alt
-  --nodeinfo             Send NodeInfo from my config
-  --telemetry            Send telemetry from my config
-  --listen               Enable listening for incoming MQTT messages
+  --listen               Stay connected and listen for incoming MQTT messages
 ```
 
 ## Examples:

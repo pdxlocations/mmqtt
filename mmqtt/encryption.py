@@ -16,6 +16,9 @@ def decrypt_packet(mp: mesh_pb2.MeshPacket, key: str) -> mesh_pb2.Data | None:
     Returns:
         A decoded mesh_pb2.Data object or None on failure.
     """
+    if key == "AQ==":
+        key = "1PG7OiApB1nwvP+rz05pAQ=="
+        
     try:
         key_bytes = base64.b64decode(key.encode('ascii'))
 
@@ -51,6 +54,9 @@ def encrypt_packet(channel: str, key: str, mp: mesh_pb2.MeshPacket, encoded_mess
     Returns:
         The encrypted message bytes or None on failure.
     """
+    if key == "AQ==":
+        key = "1PG7OiApB1nwvP+rz05pAQ=="
+        
     try:
         mp.channel = generate_hash(channel, key)
         key_bytes = base64.b64decode(key.encode('ascii'))
