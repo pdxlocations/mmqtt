@@ -20,7 +20,7 @@ class Client:
         self.verbose = enabled
 
     def configure(self, config):
-        self.server = config.mqtt.broker
+        self.server = getattr(config.mqtt, "broker", None)
         self.port = getattr(config.mqtt, "port", 1883)
         self.user = getattr(config.mqtt, "user", None)
         self.password = getattr(config.mqtt, "password", None)

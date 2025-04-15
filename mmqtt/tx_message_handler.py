@@ -67,17 +67,18 @@ def create_payload(data, portnum: int, want_response: bool = False, bitfield: in
     encoded_message.payload = data.SerializeToString() if hasattr(data, "SerializeToString") else data
     encoded_message.want_response = want_response
     encoded_message.bitfield = bitfield
-    return generate_mesh_packet(encoded_message, use_args=kwargs.get("use_args", False))
+    return generate_mesh_packet(encoded_message, **kwargs)
 
 def generate_mesh_packet(encoded_message: mesh_pb2.Data, use_args: bool = False, **kwargs) -> bytes:
     """Generate the final mesh packet."""
-
+    
+    use_args=kwargs.get("use_args", False)
     if use_args:
         config = _get_config()
         channel_id = config.channel.preset
         channel_key = config.channel.key
         gateway_id = config.nodeinfo.id
-        from_id = config.nodeinfo.number
+        from_id = int(config.nodeinfo.number.replace("!", ""), 16)
         destination = kwargs.get("to", config.message.destination_id)
     else:
         from mmqtt import client
@@ -96,10 +97,10 @@ def generate_mesh_packet(encoded_message: mesh_pb2.Data, use_args: bool = False,
     mesh_packet.id = message_id
     setattr(mesh_packet, "from", from_id)
     mesh_packet.to = int(destination)
-    mesh_packet.want_ack = False
+    mesh_packet.want_ack = kwargs.get("want_ack", False)
     mesh_packet.channel = generate_hash(channel_id, channel_key)
-    mesh_packet.hop_limit = 3
-    mesh_packet.hop_start = 3
+    mesh_packet.hop_limit = kwargs.get("hop_limit", 3)
+    mesh_packet.hop_start = kwargs.get("hop_start", 3)
 
     if channel_key == "":
         mesh_packet.decoded.CopyFrom(encoded_message)
