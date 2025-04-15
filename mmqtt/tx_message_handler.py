@@ -50,9 +50,9 @@ def publish_message(payload_function: Callable, portnum: int, **kwargs) -> None:
 
         print(f"\n[TX] Portnum = {get_portnum_name(portnum)} ({portnum})")
         print(f"     Topic: '{topic}'")
-        print(f"     To: {destination}")
+        print(f"     To: {kwargs.get('to', destination)}")
         for k, v in kwargs.items():
-            if k != "use_args":
+            if k != "use_args" and k != "to":
                 print(f"     {k}: {v}")
 
         client.publish(topic, payload)
@@ -69,7 +69,7 @@ def create_payload(data, portnum: int, want_response: bool = False, bitfield: in
     encoded_message.bitfield = bitfield
     return generate_mesh_packet(encoded_message, use_args=kwargs.get("use_args", False))
 
-def generate_mesh_packet(encoded_message: mesh_pb2.Data, use_args: bool = False) -> bytes:
+def generate_mesh_packet(encoded_message: mesh_pb2.Data, use_args: bool = False, **kwargs) -> bytes:
     """Generate the final mesh packet."""
 
     if use_args:
@@ -78,17 +78,19 @@ def generate_mesh_packet(encoded_message: mesh_pb2.Data, use_args: bool = False)
         channel_key = config.channel.key
         gateway_id = config.nodeinfo.id
         from_id = config.nodeinfo.number
-        destination = config.message.destination_id
+        destination = kwargs.get("to", config.message.destination_id)
     else:
         from mmqtt import client
         channel_id = client.channel
         channel_key = client.key
         gateway_id = client.node_id
         from_id = int(client.node_id.replace("!", ""), 16)
-        destination = client.destination_id
+        destination = kwargs.get("to", client.destination_id)
 
     global message_id
     message_id = get_message_id(message_id)
+
+    destination = kwargs.get("to", destination)
 
     mesh_packet = mesh_pb2.MeshPacket()
     mesh_packet.id = message_id

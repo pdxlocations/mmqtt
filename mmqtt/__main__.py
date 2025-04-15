@@ -17,10 +17,9 @@ def main() -> None:
     config = ConfigLoader.load_config_file(config_file)
     configure(config)
 
+    if args.listen:
+        enable_verbose(True)
 
-    enable_verbose(True)
-    config.listen_mode = True
-    
     connect()
     handle_args() 
     
