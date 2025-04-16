@@ -54,7 +54,7 @@ def publish_message(payload_function: Callable, portnum: int, **kwargs) -> None:
         print(f"     Topic: '{topic}'")
         print(f"     To: {kwargs.get('to', destination)}")
         for k, v in kwargs.items():
-            if k != "use_config" and k != "to":
+            if k not in ("use_config", "to") and v is not None:
                 print(f"     {k}: {v}")
 
         client.publish(topic, payload)
@@ -308,34 +308,56 @@ def send_environment_metrics(
     voltage: float = None,
     current: float = None,
     iaq: int = None,
+    distance: float = None,
+    ir_lux: float = None,
+    lux: float = None,
+    radiation: float = None,
+    rainfall_1h: float = None,
+    rainfall_24h: float = None,
+    soil_moisture: float = None,
+    soil_temperature: float = None,
+    uv_lux: float = None,
+    weight: float = None,
+    white_lux: float = None,
+    wind_direction: int = None,
+    wind_gust: float = None,
+    wind_lull: float = None,
+    wind_speed: float = None,
     **kwargs,
 ) -> None:
-    """Send environment metrics including temperature, humidity, and pressure."""
 
-    def create_environment_metrics_payload(
-        portnum: int,
-        temperature: float = None,
-        relative_humidity: float = None,
-        barometric_pressure: float = None,
-        gas_resistance: float = None,
-        voltage: float = None,
-        current: float = None,
-        iaq: int = None,
-        **kwargs,
-    ):
-        data = telemetry_pb2.Telemetry(
-            time=int(time.time()),
-            environment_metrics=telemetry_pb2.EnvironmentMetrics(
-                temperature=temperature,
-                relative_humidity=relative_humidity,
-                barometric_pressure=barometric_pressure,
-                gas_resistance=gas_resistance,
-                voltage=voltage,
-                current=current,
-                iaq=iaq,
-            ),
+    def create_environment_metrics_payload(portnum: int, **kwargs):
+        metrics_kwargs = {
+            "temperature": temperature,
+            "relative_humidity": relative_humidity,
+            "barometric_pressure": barometric_pressure,
+            "gas_resistance": gas_resistance,
+            "voltage": voltage,
+            "current": current,
+            "iaq": iaq,
+            "distance": distance,
+            "ir_lux": ir_lux,
+            "lux": lux,
+            "radiation": radiation,
+            "rainfall_1h": rainfall_1h,
+            "rainfall_24h": rainfall_24h,
+            "soil_moisture": soil_moisture,
+            "soil_temperature": soil_temperature,
+            "uv_lux": uv_lux,
+            "weight": weight,
+            "white_lux": white_lux,
+            "wind_direction": wind_direction,
+            "wind_gust": wind_gust,
+            "wind_lull": wind_lull,
+            "wind_speed": wind_speed,
+        }
+        metrics = telemetry_pb2.EnvironmentMetrics(
+            **{k: v for k, v in metrics_kwargs.items() if v is not None}
         )
-        return create_payload(data, portnum, **kwargs)
+        data = telemetry_pb2.Telemetry(
+            time=int(time.time()), environment_metrics=metrics
+        )
+        return create_payload(data, portnum)
 
     publish_message(
         create_environment_metrics_payload,
@@ -347,5 +369,20 @@ def send_environment_metrics(
         voltage=voltage,
         current=current,
         iaq=iaq,
+        distance=distance,
+        ir_lux=ir_lux,
+        lux=lux,
+        radiation=radiation,
+        rainfall_1h=rainfall_1h,
+        rainfall_24h=rainfall_24h,
+        soil_moisture=soil_moisture,
+        soil_temperature=soil_temperature,
+        uv_lux=uv_lux,
+        weight=weight,
+        white_lux=white_lux,
+        wind_direction=wind_direction,
+        wind_gust=wind_gust,
+        wind_lull=wind_lull,
+        wind_speed=wind_speed,
         **kwargs,
     )

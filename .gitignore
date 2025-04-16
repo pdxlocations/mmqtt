@@ -3,4 +3,5 @@ __pycache__/
 config.json
 dist/
 examples/announce.py
+examples/anything-to-mesh.py
 .vscode/settings.json
