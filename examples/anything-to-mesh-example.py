@@ -13,18 +13,56 @@ def handle_sensor_message(mqtt_client, userdata, msg: MQTTMessage):
         if not msg.payload.strip().startswith(b"{"):
             return  # Ignore non-JSON payloads
 
-        payload = json.loads(msg.payload.decode("utf-8"))
+        raw = json.loads(msg.payload.decode("utf-8"))
+
+        payload = lowercase_keys(raw)
         print()
         print(f"[MQTT] Received sensor data: {payload}")
 
+        # Convert temperature from Fahrenheit to Celsius if present
+        temperature_f = find_first_key(payload, "temperature")
+        temperature_c = (
+            float(f"{(temperature_f - 32) * 5 / 9:.2f}")
+            if temperature_f is not None
+            else None
+        )
+
         # Send any matching sensor data to the Mesh
         send_environment_metrics(
-            temperature=payload.get("temperature"),
-            relative_humidity=payload.get("humidity"),
-            barometric_pressure=payload.get("pressure"),
+            temperature=temperature_c,
+            relative_humidity=find_first_key(payload, "humidity"),
+            barometric_pressure=find_first_key(payload, "pressure"),
         )
     except Exception as e:
         print(f"[ERROR] Failed to process incoming MQTT message: {e}")
+
+
+def lowercase_keys(obj):
+    if isinstance(obj, dict):
+        return {k.lower(): lowercase_keys(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [lowercase_keys(i) for i in obj]
+    return obj
+
+
+def find_first_key(obj, key):
+    """
+    Recursively search nested dictionaries and lists for the first occurrence of a given key.
+    Returns the corresponding value if found, otherwise returns None.
+    """
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k == key:
+                return v
+            found = find_first_key(v, key)
+            if found is not None:
+                return found
+    elif isinstance(obj, list):
+        for item in obj:
+            found = find_first_key(item, key)
+            if found is not None:
+                return found
+    return None
 
 
 def main():
