@@ -4,6 +4,9 @@ from meshtastic import BROADCAST_NUM
 from paho.mqtt.client import MQTTMessage
 from mmqtt import send_environment_metrics, send_nodeinfo, client
 
+# Subscribe to external sensor topic, publish to preset topic
+subscribe_topic = "home/sensors/#"
+
 
 def handle_sensor_message(mqtt_client, userdata, msg: MQTTMessage):
     try:
@@ -37,10 +40,8 @@ def main():
     client.enable_verbose(True)
     client.connect()
     client.client.on_message = handle_sensor_message
-
-    # Subscribe to external sensor topic, publish to preset topic
-    subscribe_topic = "home/sensors/#"
     client.client.subscribe(subscribe_topic)
+
     print(f"[MQTT] Subscribed to custom topic: {subscribe_topic}")
 
     send_nodeinfo(client.node_id, "Temperature Sensor", "temp")
