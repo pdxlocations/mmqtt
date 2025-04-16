@@ -6,46 +6,62 @@ This project is useful for testing Meshtastic networks connected to an MQTT serv
 pip install mmqtt
 ```
 
-## For development
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install poetry
-poetry build
-pip install dist/mmqtt*.whl
-```
+# Functions (see examples for further information):
 
-# To run:
-
-```bash
-mmqtt
-```
-
-## Available functions (see examples for further information):
-
-```bash
+```python
 from mmqtt import send_nodeinfo, send_position, send_device_telemetry, send_text_message
+
 send_nodeinfo(node_id, long_name, short_name)
 send_position(lattitude, longitude, altitude, location_precision)
 send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
 send_power_metrics(ch1_voltage, ch1_current, ch2_voltage, ch2_current, ch3_voltage, ch3_current)
-send_environment_metrics(temperature, relative_humidity, barometric_pressure, gas_resistance, voltage, current, iaq)
+send_environment_metrics(temperature, relative_humidity, barometric_pressure)
 send_text_message("text")
 ```
-Optional Arguments:
-```bash
-to=INT
-hop_start=INT
-hop_limit=INT
-want_ack=BOOL
-want_response=BOOL
-```
+Supported keyword arguments for environment metrics:
+
+- temperature
+- relative_humidity
+- barometric_pressure
+- gas_resistance
+- voltage
+- current
+- iaq
+- distance
+- ir_lux
+- lux
+- radiation
+- rainfall_1h
+- rainfall_24h
+- soil_moisture
+- soil_temperature
+- uv_lux
+- weight
+- white_lux
+- wind_direction
+- wind_gust
+- wind_lull
+- wind_speed
+
+Optional Arguments for all message types:
+
+- to=INT
+- hop_limit=INT
+- hop_start=INT
+- want_ack=BOOL
+- want_response=BOOL
+
 Example:
 ```bash
 send_text_message("Happy New Year" to=12345678, hop_limit=5)
 ```
 
+# Command Line Interface:
+
+```bash
+mmqtt --args
+```
 
 ## Available arguments:
 
@@ -120,3 +136,18 @@ mmqtt --config "my-config.json" --message "I need an Alpinist"
   }
 }
   ```
+
+## Build and install locally:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install poetry
+poetry build
+pip install dist/mmqtt*.whl
+```
+
+## Install in development (editable) mode:
+```bash
+pip install -e .
+```
