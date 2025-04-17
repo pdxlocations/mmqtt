@@ -43,11 +43,7 @@ def publish_message(payload_function: Callable, portnum: int, **kwargs) -> None:
 
         destination = kwargs.get("to")
         if destination is None:
-            destination = (
-                _get_config().message.destination_id
-                if use_config
-                else client.destination_id
-            )
+            destination = _get_config().message.destination_id if use_config else client.destination_id
         payload = payload_function(portnum=portnum, **kwargs)
 
         print(f"\n[TX] Portnum = {get_portnum_name(portnum)} ({portnum})")
@@ -67,9 +63,7 @@ def create_payload(data, portnum: int, bitfield: int = 1, **kwargs) -> bytes:
     """Generalized function to create a payload."""
     encoded_message = mesh_pb2.Data()
     encoded_message.portnum = portnum
-    encoded_message.payload = (
-        data.SerializeToString() if hasattr(data, "SerializeToString") else data
-    )
+    encoded_message.payload = data.SerializeToString() if hasattr(data, "SerializeToString") else data
     encoded_message.want_response = kwargs.get("want_response", False)
     encoded_message.bitfield = bitfield
     return generate_mesh_packet(encoded_message, **kwargs)
@@ -81,6 +75,8 @@ def generate_mesh_packet(encoded_message: mesh_pb2.Data, **kwargs) -> bytes:
     use_config = kwargs.get("use_config", False)
     if use_config:
         config = _get_config()
+        if not config.nodeinfo.id.startswith("!"):
+            raise ValueError("Node ID must start with '!'")
         channel_id = config.channel.preset
         channel_key = config.channel.key
         gateway_id = config.nodeinfo.id
@@ -89,11 +85,17 @@ def generate_mesh_packet(encoded_message: mesh_pb2.Data, **kwargs) -> bytes:
     else:
         from mmqtt import client
 
+        if not client.node_id.startswith("!"):
+            raise ValueError("Node ID must start with '!'")
         channel_id = client.channel
         channel_key = client.key
         gateway_id = client.node_id
         from_id = int(client.node_id.replace("!", ""), 16)
         destination = kwargs.get("to", client.destination_id)
+
+    reserved_ids = [1, 2, 3, 4, 4294967295]
+    if from_id in reserved_ids:
+        raise ValueError(f"Node ID '{from_id}' is reserved and cannot be used. Please choose a different ID.")
 
     global message_id
     message_id = get_message_id(message_id)
@@ -110,9 +112,7 @@ def generate_mesh_packet(encoded_message: mesh_pb2.Data, **kwargs) -> bytes:
     if channel_key == "":
         mesh_packet.decoded.CopyFrom(encoded_message)
     else:
-        mesh_packet.encrypted = encrypt_packet(
-            channel_id, channel_key, mesh_packet, encoded_message
-        )
+        mesh_packet.encrypted = encrypt_packet(channel_id, channel_key, mesh_packet, encoded_message)
 
     service_envelope = mqtt_pb2.ServiceEnvelope()
     service_envelope.packet.CopyFrom(mesh_packet)
@@ -132,15 +132,16 @@ def send_text_message(message: str = None, **kwargs) -> None:
         data = message.encode("utf-8")
         return create_payload(data, portnum, **kwargs)
 
-    publish_message(
-        create_text_payload, portnums_pb2.TEXT_MESSAGE_APP, message=message, **kwargs
-    )
+    publish_message(create_text_payload, portnums_pb2.TEXT_MESSAGE_APP, message=message, **kwargs)
 
 
-def send_nodeinfo(
-    id: str = None, long_name: str = None, short_name: str = None, **kwargs
-) -> None:
+def send_nodeinfo(id: str = None, long_name: str = None, short_name: str = None, **kwargs) -> None:
     """Send node information including short/long names and hardware model."""
+
+    if long_name is not None and len(long_name) > 32:
+        raise ValueError("Long name exceeds 32 characters.")
+    if short_name is not None and len(short_name) > 4:
+        raise ValueError("Short name exceeds 4 characters.")
 
     def create_nodeinfo_payload(
         portnum: int,
@@ -351,12 +352,8 @@ def send_environment_metrics(
             "wind_lull": wind_lull,
             "wind_speed": wind_speed,
         }
-        metrics = telemetry_pb2.EnvironmentMetrics(
-            **{k: v for k, v in metrics_kwargs.items() if v is not None}
-        )
-        data = telemetry_pb2.Telemetry(
-            time=int(time.time()), environment_metrics=metrics
-        )
+        metrics = telemetry_pb2.EnvironmentMetrics(**{k: v for k, v in metrics_kwargs.items() if v is not None})
+        data = telemetry_pb2.Telemetry(time=int(time.time()), environment_metrics=metrics)
         return create_payload(data, portnum)
 
     publish_message(
