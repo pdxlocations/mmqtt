@@ -21,11 +21,7 @@ def handle_sensor_message(mqtt_client, userdata, msg: MQTTMessage):
 
         # Convert temperature from Fahrenheit to Celsius if present
         temperature_f = find_first_key(payload, "temperature")
-        temperature_c = (
-            float(f"{(temperature_f - 32) * 5 / 9:.2f}")
-            if temperature_f is not None
-            else None
-        )
+        temperature_c = float(f"{(temperature_f - 32) * 5 / 9:.2f}") if temperature_f is not None else None
 
         # Send any matching sensor data to the Mesh
         send_environment_metrics(
@@ -83,10 +79,14 @@ def main():
     print(f"[MQTT] Subscribed to custom topic: {subscribe_topic}")
 
     send_nodeinfo(client.node_id, "Temperature Sensor", "temp")
+    last_nodeinfo_time = time.time()
     time.sleep(1)
 
     try:
         while True:
+            if time.time() - last_nodeinfo_time > 7200:
+                send_nodeinfo(client.node_id, "Temperature Sensor", "temp")
+                last_nodeinfo_time = time.time()
             time.sleep(1)
     except KeyboardInterrupt:
         print("\nDisconnecting...")
