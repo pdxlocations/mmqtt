@@ -14,7 +14,7 @@ def get_iss_location():
         response = requests.get("https://api.wheretheiss.at/v1/satellites/25544")
         response.raise_for_status()
         data = response.json()
-        return data["latitude"], data["longitude"], data["altitude"] * 1000
+        return data["latitude"], data["longitude"], data["altitude"] * 1000, data["velocity"]
     except Exception as e:
         print(f"[ERROR] Failed to fetch ISS location: {e}")
         return None, None, None
@@ -44,6 +44,7 @@ def main():
 
     send_iss_nodeinfo()
     last_nodeinfo_time = time.time()
+    last_lat, last_lon = None, None
 
     try:
         while True:
