@@ -1,6 +1,6 @@
 [project]
 name = "mmqtt"
-version = "1.1.2"
+version = "1.1.3"
 description = "This library may be useful for testing Meshtastic networks connected to an MQTT server."
 authors = [
     {name = "Ben Lipsey",email = "ben@pdxlocations.com"}
