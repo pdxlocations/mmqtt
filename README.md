@@ -10,15 +10,82 @@ pip install mmqtt
 # Functions (see examples for further information):
 
 ```python
-from mmqtt import send_nodeinfo, send_position, send_device_telemetry, send_text_message
+from mmqtt import (
+    send_nodeinfo,
+    send_device_telemetry,
+    send_position,
+    send_environment_metrics,
+    send_power_metrics,
+    send_health_metrics,
+    send_text_message,
+)
 
 send_nodeinfo(node_id, long_name, short_name)
-send_position(lattitude, longitude, altitude, location_precision)
-send_device_telemetry(battery_level, voltage, chutil, airtxutil, uptime)
-send_power_metrics(ch1_voltage, ch1_current, ch2_voltage, ch2_current, ch3_voltage, ch3_current)
-send_environment_metrics(temperature, relative_humidity, barometric_pressure)
+send_device_telemetry()
+send_position(latitude, longitude)
+send_environment_metrics()
+send_power_metrics()
+send_health_metrics()
 send_text_message("text")
 ```
+
+Optional Arguments for all message types:
+
+- to=INT
+- hop_limit=INT
+- hop_start=INT
+- want_ack=BOOL
+- want_response=BOOL
+
+Example:
+```bash
+send_text_message("Happy New Year" to=12345678, hop_limit=5)
+```
+
+Supported keyword arguments for nodeinfo:
+
+- id (required)
+- long_name (required)
+- short_name (required)
+- hw_model
+- is_licensed
+- role
+- public_key
+
+Supported keyword arguments for device metrics:
+
+ - battery_level
+ - voltage
+ - channel_utilization
+ - air_util_tx
+ - uptime_seconds
+
+Supported keyword arguments for position metrics:
+
+- latitude (required)
+- longitude (required)
+- latitude_i
+- longitude_i
+- altitude
+- precision_bits
+- HDOP
+- PDOP
+- VDOP
+- altitude_geoidal_separation
+- altitude_hae
+- altitude_source
+- fix_quality
+- fix_type
+- gps_accuracy
+- ground_speed
+- ground_track
+- next_update
+- sats_in_view
+- sensor_id
+- seq_number
+- timestamp
+- timestamp_millis_adjust
+
 Supported keyword arguments for environment metrics:
 
 - temperature
@@ -44,42 +111,20 @@ Supported keyword arguments for environment metrics:
 - wind_lull
 - wind_speed
 
-Supported keyword arguments for position metrics:
+Supported keyword arguments for power metrics:
 
-- latitude
-- longitude
-- altitude
-- precision
-- HDOP
-- PDOP
-- VDOP
-- altitude_geoidal_separation
-- altitude_hae
-- altitude_source
-- fix_quality
-- fix_type
-- gps_accuracy
-- ground_speed
-- ground_track
-- next_update
-- sats_in_view
-- sensor_id
-- seq_number
-- timestamp
-- timestamp_millis_adjust
+ - ch1_voltage
+ - ch1_current
+ - ch2_voltage
+ - ch2_current
+ - ch3_voltage
+ - ch3_current
 
-Optional Arguments for all message types:
-
-- to=INT
-- hop_limit=INT
-- hop_start=INT
-- want_ack=BOOL
-- want_response=BOOL
-
-Example:
-```bash
-send_text_message("Happy New Year" to=12345678, hop_limit=5)
-```
+Supported keyword arguments for health metrics:
+ 
+ - heart_bpm
+ - spO2
+ - temperature
 
 # Command Line Interface:
 
