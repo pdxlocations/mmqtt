@@ -171,35 +171,63 @@ def send_nodeinfo(id: str = None, long_name: str = None, short_name: str = None,
 def send_position(
     latitude: float = None,
     longitude: float = None,
-    altitude: float | str = None,
+    altitude: int = None,
     precision: int = None,
+    HDOP: int = None,
+    PDOP: int = None,
+    VDOP: int = None,
+    altitude_geoidal_separation: int = None,
+    altitude_hae: int = None,
+    altitude_source: int = None,
+    fix_quality: int = None,
+    fix_type: int = None,
+    gps_accuracy: int = None,
+    ground_speed: int = None,
+    ground_track: int = None,
+    next_update: int = None,
+    sats_in_view: int = None,
+    sensor_id: int = None,
+    seq_number: int = None,
+    timestamp: int = None,
+    timestamp_millis_adjust: int = None,
     **kwargs,
 ) -> None:
     """Send current position with optional precision."""
 
-    def create_position_payload(
-        portnum: int,
-        latitude: float = None,
-        longitude: float = None,
-        altitude: float | str = None,
-        precision: int = None,
-    ):
+    def create_position_payload(portnum: int, **kwargs):
+
         pos_time = int(time.time())
-        latitude_i = int(latitude * 1e7)
-        longitude_i = int(longitude * 1e7)
         altitude_units = 1 / 3.28084 if "ft" in str(altitude).lower() else 1.0
         alt_value = int(altitude_units * float(re.sub(r"[^0-9.]", "", str(altitude))))
 
-        data = mesh_pb2.Position(
-            latitude_i=latitude_i,
-            longitude_i=longitude_i,
-            altitude=alt_value,
-            time=pos_time,
-            location_source="LOC_MANUAL",
-            precision_bits=precision,
-            **kwargs,
-        )
-        return create_payload(data, portnum, **kwargs)
+        position_kwargs = {
+            "latitude_i": int(latitude * 1e7) if latitude is not None else None,
+            "longitude_i": int(longitude * 1e7) if longitude is not None else None,
+            "altitude": alt_value,
+            "time": pos_time,
+            "location_source": "LOC_MANUAL",
+            "precision_bits": precision,
+            "HDOP": HDOP,
+            "PDOP": PDOP,
+            "VDOP": VDOP,
+            "altitude_geoidal_separation": altitude_geoidal_separation,
+            "altitude_hae": altitude_hae,
+            "altitude_source": altitude_source,
+            "fix_quality": fix_quality,
+            "fix_type": fix_type,
+            "gps_accuracy": gps_accuracy,
+            "ground_speed": ground_speed,
+            "ground_track": ground_track,
+            "next_update": next_update,
+            "sats_in_view": sats_in_view,
+            "sensor_id": sensor_id,
+            "seq_number": seq_number,
+            "timestamp": timestamp,
+            "timestamp_millis_adjust": timestamp_millis_adjust,
+        }
+
+        data = mesh_pb2.Position(**{k: v for k, v in position_kwargs.items() if v is not None})
+        return create_payload(data, portnum)
 
     publish_message(
         create_position_payload,
@@ -208,6 +236,24 @@ def send_position(
         longitude=longitude,
         altitude=altitude,
         precision=precision,
+        HDOP=HDOP,
+        PDOP=PDOP,
+        VDOP=VDOP,
+        altitude_geoidal_separation=altitude_geoidal_separation,
+        altitude_hae=altitude_hae,
+        altitude_source=altitude_source,
+        fix_quality=fix_quality,
+        fix_type=fix_type,
+        gps_accuracy=gps_accuracy,
+        ground_speed=ground_speed,
+        ground_track=ground_track,
+        next_update=next_update,
+        sats_in_view=sats_in_view,
+        sensor_id=sensor_id,
+        seq_number=seq_number,
+        timestamp=timestamp,
+        timestamp_millis_adjust=timestamp_millis_adjust,
+        **kwargs,
     )
 
 

@@ -44,6 +44,30 @@ Supported keyword arguments for environment metrics:
 - wind_lull
 - wind_speed
 
+Supported keyword arguments for position metrics:
+
+- latitude
+- longitude
+- altitude
+- precision
+- HDOP
+- PDOP
+- VDOP
+- altitude_geoidal_separation
+- altitude_hae
+- altitude_source
+- fix_quality
+- fix_type
+- gps_accuracy
+- ground_speed
+- ground_track
+- next_update
+- sats_in_view
+- sensor_id
+- seq_number
+- timestamp
+- timestamp_millis_adjust
+
 Optional Arguments for all message types:
 
 - to=INT
