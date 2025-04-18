@@ -5,9 +5,9 @@ from typing import Callable
 
 from meshtastic import portnums_pb2, mesh_pb2, mqtt_pb2, telemetry_pb2
 
-from mmqtt.encryption import encrypt_packet
+from mmqtt.encryption import encrypt_packet, generate_hash
 from mmqtt.load_config import ConfigLoader
-from mmqtt.utils import generate_hash, get_message_id
+from mmqtt.utils import get_message_id
 
 _config = None
 message_id = random.getrandbits(32)
