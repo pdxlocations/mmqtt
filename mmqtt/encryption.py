@@ -3,8 +3,6 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from meshtastic.protobuf import mesh_pb2
 
-from mmqtt.utils import generate_hash
-
 
 def decrypt_packet(mp: mesh_pb2.MeshPacket, key: str) -> mesh_pb2.Data | None:
     """
@@ -29,13 +27,9 @@ def decrypt_packet(mp: mesh_pb2.MeshPacket, key: str) -> mesh_pb2.Data | None:
         nonce = nonce_packet_id + nonce_from_node
 
         # Decrypt the encrypted payload
-        cipher = Cipher(
-            algorithms.AES(key_bytes), modes.CTR(nonce), backend=default_backend()
-        )
+        cipher = Cipher(algorithms.AES(key_bytes), modes.CTR(nonce), backend=default_backend())
         decryptor = cipher.decryptor()
-        decrypted_bytes = (
-            decryptor.update(getattr(mp, "encrypted")) + decryptor.finalize()
-        )
+        decrypted_bytes = decryptor.update(getattr(mp, "encrypted")) + decryptor.finalize()
 
         # Parse the decrypted bytes into a Data object
         data = mesh_pb2.Data()
@@ -47,9 +41,7 @@ def decrypt_packet(mp: mesh_pb2.MeshPacket, key: str) -> mesh_pb2.Data | None:
         return None
 
 
-def encrypt_packet(
-    channel: str, key: str, mp: mesh_pb2.MeshPacket, encoded_message: mesh_pb2.Data
-) -> bytes | None:
+def encrypt_packet(channel: str, key: str, mp: mesh_pb2.MeshPacket, encoded_message: mesh_pb2.Data) -> bytes | None:
     """
     Encrypt an encoded message and return the ciphertext.
 
@@ -75,16 +67,30 @@ def encrypt_packet(
         # Put both parts into a single byte array.
         nonce = nonce_packet_id + nonce_from_node
 
-        cipher = Cipher(
-            algorithms.AES(key_bytes), modes.CTR(nonce), backend=default_backend()
-        )
+        cipher = Cipher(algorithms.AES(key_bytes), modes.CTR(nonce), backend=default_backend())
         encryptor = cipher.encryptor()
-        encrypted_bytes = (
-            encryptor.update(encoded_message.SerializeToString()) + encryptor.finalize()
-        )
+        encrypted_bytes = encryptor.update(encoded_message.SerializeToString()) + encryptor.finalize()
 
         return encrypted_bytes
 
     except Exception as e:
         print(f"Failed to encrypt: {e}")
         return None
+
+
+def xor_hash(data: bytes) -> int:
+    """Compute an XOR hash from bytes."""
+    result = 0
+    for char in data:
+        result ^= char
+    return result
+
+
+def generate_hash(name: str, key: str) -> int:
+    """generate the channel number by hashing the channel name and psk"""
+    replaced_key = key.replace("-", "+").replace("_", "/")
+    key_bytes = base64.b64decode(replaced_key.encode("utf-8"))
+    h_name = xor_hash(bytes(name, "utf-8"))
+    h_key = xor_hash(key_bytes)
+    result: int = h_name ^ h_key
+    return result
